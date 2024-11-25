@@ -14,9 +14,7 @@ public class Wenwen2 {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        System.out.println("abc");
-        System.out.println("def");
-        System.out.println("ghi");
+        System.out.println("test4");
     }
     
 }
