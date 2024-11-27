@@ -25,6 +25,7 @@ db.connect((err) => {
 app.use(bodyParser.json());
 app.use(express.static(__dirname));
 
+//Modify from here
 // Route to handle form submission
 app.post('/submit', (req, res) => {
   const { name, email } = req.body;
@@ -40,6 +41,8 @@ app.post('/submit', (req, res) => {
     res.status(200).json({ message: 'Data inserted successfully' });
   });
 });
+
+//modify until here
 
 // Start the server
 app.listen(port, () => {
