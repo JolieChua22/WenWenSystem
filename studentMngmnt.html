@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>Student Details</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f4f4f9;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+
+    table th, table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+
+    table th {
+      background-color: #007bff;
+      color: white;
+    }
+
+    table tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    table tr:hover {
+      background-color: #f1f1f1;
+    }
+  </style>
+</head>
+<body>
+  <h1>Student Details</h1>
+  <table id="studentTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Date of Birth</th>
+        <th>Gender</th>
+        <th>Contact</th>
+        <th>Email</th>
+        <th>Address</th>
+        <th>Enrollment Date</th>
+        <th>Emergency Contact</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Rows will be added here dynamically -->
+    </tbody>
+  </table>
+  <script>
+    // Fetch student details from the server
+    fetch("http://localhost:3000/students")
+      .then(response => response.json())
+      .then(data => {
+        const tableBody = document.getElementById("studentTable").querySelector("tbody");
+        tableBody.innerHTML = ""; // Clear existing rows
+
+        data.forEach(student => {
+          const row = document.createElement("tr");
+
+          row.innerHTML = `
+            <td>${student.StudentID}</td>
+            <td>${student.FirstName}</td>
+            <td>${student.LastName}</td>
+            <td>${student.DateOfBirth}</td>
+            <td>${student.Gender}</td>
+            <td>${student.ContactNumber}</td>
+            <td>${student.Email}</td>
+            <td>${student.Address}</td>
+            <td>${student.EnrollmentDate}</td>
+            <td>${student.EmergencyContact}</td>
+          `;
+
+          tableBody.appendChild(row);
+        });
+      })
+      .catch(error => {
+        console.error("Error fetching student data:", error);
+        alert("Failed to load student details.");
+      });
+  </script>
+</body>
+</html>
