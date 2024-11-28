@@ -135,6 +135,19 @@ document.addEventListener('DOMContentLoaded', () => {
       tableBody.appendChild(errorRow);
     });
 });
+
+// Search Functionality
+// Handle Search Button Click
+document.getElementById("searchButton").addEventListener("click", () => {
+  const query = document.getElementById("searchInput").value.trim();
+  fetchAndDisplayStudents(query);
+});
+
+// Handle Reset Button Click
+document.getElementById("resetButton").addEventListener("click", () => {
+  document.getElementById("searchInput").value = "";
+  fetchAndDisplayStudents();
+});
   </script>
   <script src="js/script.js"></script>
 </body>
