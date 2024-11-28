@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
   // Add an event listener to the form
+  // connection
   const studentForm = document.getElementById("studentForm");
 
   if (studentForm) {
