@@ -51,20 +51,35 @@ app.use(express.static(__dirname));
 
 
 // Route to fetch student details
-// Endpoint to fetch students
+// Route to fetch student details with optional global search
+// Route to fetch student details with optional global search
 app.get('/students', (req, res) => {
-  const query = req.query.query?.toLowerCase() || "";
+  console.log('Fetching students...');
+  const queryTerm = req.query.query;
+  let query = 'SELECT * FROM Students';
+  let params = [];
 
-  const filteredStudents = students.filter((student) => {
-    return (
-      student.FirstName.toLowerCase().includes(query) ||
-      student.LastName.toLowerCase().includes(query)
-    );
+  if (queryTerm) {
+    // Define the fields to search across
+    const searchFields = ['StudentID', 'FirstName', 'LastName', 'Email'];
+
+    // Construct the WHERE clause with OR conditions for each field
+    const searchConditions = searchFields.map(field => `LOWER(${field}) LIKE LOWER(?)`).join(' OR ');
+    query += ` WHERE ${searchConditions}`;
+
+    // Prepare the search pattern for each field
+    const searchPattern = `%${queryTerm}%`;
+    params = Array(searchFields.length).fill(searchPattern);
+  }
+
+  db.query(query, params, (err, results) => {
+    if (err) {
+      console.error('Error fetching students:', err.stack);
+      return res.status(500).send({ error: 'Database error' });
+    }
+    res.json(results);
   });
-
-  res.json(filteredStudents);
 });
-
 //modify until here
 
 // Start the server
