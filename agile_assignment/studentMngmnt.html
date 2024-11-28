@@ -98,7 +98,7 @@
       console.log("Search query:", query); // Debugging line
   
       let url = "http://localhost:3000/students";
-      
+  
       if (query) {
         const params = new URLSearchParams();
         params.append("query", query);
@@ -125,7 +125,8 @@
   
           data.forEach((student) => {
             const row = document.createElement("tr");
-            console.log(student);
+            console.log(student); // Confirm each student object
+  
             row.innerHTML = `
               <td>${student.StudentID}</td>
               <td>${student.FirstName}</td>
@@ -168,6 +169,13 @@
     document.getElementById("resetButton").addEventListener("click", () => {
       document.getElementById("searchInput").value = "";
       fetchAndDisplayStudents();
+    });
+  
+    // Optional: Allow pressing Enter to trigger search
+    document.getElementById("searchInput").addEventListener("keypress", (event) => {
+      if (event.key === "Enter") {
+        document.getElementById("searchButton").click();
+      }
     });
   </script>
   <script src="js/script.js"></script>
