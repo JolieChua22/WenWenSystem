@@ -1,3 +1,4 @@
+// Add Course Javascript
 async function createSubject() {
     const subjectName = document.getElementById('subjectName').value;
     const description = document.getElementById('description').value;
