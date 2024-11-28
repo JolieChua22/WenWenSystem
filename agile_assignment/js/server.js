@@ -51,16 +51,18 @@ app.use(express.static(__dirname));
 
 
 // Route to fetch student details
+// Endpoint to fetch students
 app.get('/students', (req, res) => {
-  console.log('Fetching students...');
-  const query = 'SELECT * FROM Students';
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error('Error fetching students:', err.stack);
-      return res.status(500).send({ error: 'Database error' });
-    }
-    res.json(results);
+  const query = req.query.query?.toLowerCase() || "";
+
+  const filteredStudents = students.filter((student) => {
+    return (
+      student.FirstName.toLowerCase().includes(query) ||
+      student.LastName.toLowerCase().includes(query)
+    );
   });
+
+  res.json(filteredStudents);
 });
 
 //modify until here

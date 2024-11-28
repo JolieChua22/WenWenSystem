@@ -68,7 +68,7 @@
   
   <!-- Search Container -->
   <div class="search-container">
-    <input type="text" id="searchInput" placeholder="Search by First or Last Name">
+    <input type="text" id="searchInput" placeholder="Search ">
     <button id="searchButton">Search</button>
     <button id="resetButton">Reset</button>
   </div>
@@ -155,15 +155,14 @@ fetchAndDisplayStudents();
 
 // Handle Search Button Click
 document.getElementById("searchButton").addEventListener("click", () => {
-  console.log("Search button clicked!");
-
   const query = document.getElementById("searchInput").value.trim();
   if (query) {
-    fetchAndDisplayStudents(query);
+    fetchAndDisplayStudents(query); // Pass the query to the server
   } else {
     alert('Please enter a search term.');
   }
 });
+
 
 // Handle Reset Button Click
 document.getElementById("resetButton").addEventListener("click", () => {

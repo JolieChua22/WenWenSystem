@@ -1,8 +1,8 @@
 document.getElementById("myForm").addEventListener("submit", function (event) {
   event.preventDefault(); // Prevent default form submission
 
-  const name = document.getElementById("name").value;
-  const email = document.getElementById("email").value;
+  // const name = document.getElementById("name").value;
+  // const email = document.getElementById("email").value;
 
   // fetch("http://localhost:3000/submit", {
   //   method: "POST",
