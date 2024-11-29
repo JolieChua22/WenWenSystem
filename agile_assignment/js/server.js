@@ -30,38 +30,54 @@ const cors = require('cors');
 app.use(cors());
 
 //Modify from here
+app.post("/submit", async (req, res) => {
+  try {
+    const { firstName, lastName, dob, enrollmentDate } = req.body;
 
-app.post('/submit', (req, res) => {
-  const {
-    firstName,
-    lastName,
-    dob,
-    gender,
-    contact,
-    email,
-    address,
-    enrollmentDate,
-    emergencyContact,
-  } = req.body;
+    // Validate age
+    const today = new Date();
+    const dobDate = new Date(dob);
+    let ageInYears = today.getFullYear() - dobDate.getFullYear();
+    const monthDifference = today.getMonth() - dobDate.getMonth();
+    const dayDifference = today.getDate() - dobDate.getDate();
 
-  const query = `
-    INSERT INTO Students (FirstName, LastName, DateOfBirth, Gender, ContactNumber, Email, Address, EnrollmentDate, EmergencyContact)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-
-  db.query(
-    query,
-    [firstName, lastName, dob, gender, contact, email, address, enrollmentDate, emergencyContact],
-    (err, results) => {
-      if (err) {
-        console.error('Error inserting data:', err.stack);
-        res.status(500).json({ error: 'Failed to add student' });
-        return;
-      }
-      res.status(200).json({ message: 'Student added successfully' });
+    if (monthDifference < 0 || (monthDifference === 0 && dayDifference < 0)) {
+      ageInYears--;
     }
-  );
+
+    if (ageInYears < 7) {
+      return res.status(400).json({ error: "Student must be at least 7 years old." });
+    }
+
+    // Validate enrollment date
+    const enrollmentDateValue = new Date(enrollmentDate);
+    if (enrollmentDateValue < today.setHours(0, 0, 0, 0)) {
+      return res.status(400).json({ error: "Enrollment date must be today or a future date." });
+    }
+
+    // Check for duplicate student
+    const checkQuery = "SELECT * FROM Students WHERE FirstName = ? AND LastName = ? AND DateOfBirth = ?";
+    const [existingStudent] = await db.promise().query(checkQuery, [firstName, lastName, dob]);
+
+    if (existingStudent.length > 0) {
+      return res.status(400).json({ error: "Student record already exists." });
+    }
+
+    // Insert the new student record
+    const insertQuery = `
+      INSERT INTO Students (FirstName, LastName, DateOfBirth, Gender, ContactNumber, Email, Address, EnrollmentDate, EmergencyContact)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    await db.promise().query(insertQuery, Object.values(req.body));
+
+    res.status(201).json({ message: "Student added successfully!" });
+  } catch (err) {
+    console.error("Error handling /submit request:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
+
+
 
 const path = require('path');
 
