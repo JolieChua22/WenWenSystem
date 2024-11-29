@@ -5,6 +5,19 @@ const cors = require('cors');
 const app = express();
 const port = 3000;
 
+// Define allowed sort fields to prevent SQL injection
+const allowedSortFields = [
+  'StudentID',
+  'FirstName',
+  'LastName',
+  'DateOfBirth',
+  'Gender',
+  'ContactNumber',
+  'Email',
+  'Address',
+  'EnrollmentDate',
+  'EmergencyContact'
+];
 // Enable CORS for all routes
 app.use(cors({
   origin: '*', // Allow all origins (you can restrict this to specific origins if needed)
@@ -16,8 +29,8 @@ app.use(cors({
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'agile',
-  password: 'admin', // Replace with your MySQL password
-  database: 'tuition'     // Replace with your database name
+  password: 'admin', 
+  database: 'tuition'     
 });
 
 db.connect((err) => {
@@ -34,9 +47,14 @@ app.use(express.static(__dirname));
 
 //Modify from here
 // Route to fetch student details
+
+// Route to fetch student details with optional global search and sorting
 app.get('/students', (req, res) => {
   console.log('Fetching students...');
   const queryTerm = req.query.query;
+  const sortField = req.query.sortField;
+  const sortOrder = req.query.sortOrder === 'desc' ? 'DESC' : 'ASC'; // Default to ASC
+
   let query = 'SELECT * FROM Students';
   let params = [];
 
@@ -76,6 +94,11 @@ app.get('/students', (req, res) => {
     params = Array(searchFields.length).fill(searchPattern);
   }
 
+  // Handle sorting if sortField is provided and valid
+  if (sortField && allowedSortFields.includes(sortField)) {
+    query += ` ORDER BY ${sortField} ${sortOrder}`;
+  }
+
   console.log('Executing Query:', query);
   console.log('With Parameters:', params);
 
@@ -85,7 +108,7 @@ app.get('/students', (req, res) => {
       return res.status(500).send({ error: 'Database error' });
     }
     console.log('Number of Records Found:', results.length);
-    res.json(results); // Ensure 'results' is correctly referenced
+    res.json(results);
   });
 });
 //modify until here

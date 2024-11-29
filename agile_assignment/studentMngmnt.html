@@ -2,73 +2,52 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="css/style.css">
-  <title>Student Details</title>
+  <title>Student Management</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
-      background-color: #f4f4f9;
     }
-
-    h1 {
-      text-align: center;
-      color: #333;
-    }
-
-    /* New Styles for Search Bar */
     .search-container {
-      display: flex;
-      justify-content: center;
       margin-bottom: 20px;
     }
-
     .search-container input {
       width: 300px;
       padding: 8px;
       font-size: 16px;
     }
-
     .search-container button {
       padding: 8px 16px;
       font-size: 16px;
       margin-left: 10px;
-      cursor: pointer;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 20px 0;
     }
-
-    table th, table td {
+    table, th, td {
       border: 1px solid #ddd;
+    }
+    th, td {
       padding: 8px;
       text-align: center;
+      cursor: pointer; /* Indicate that headers are clickable */
     }
-
-    table th {
-      background-color: #007bff;
-      color: white;
+    th {
+      background-color: #f2f2f2;
+      position: relative; /* For positioning sort indicators */
     }
-
-    table tr:nth-child(even) {
-      background-color: #f9f9f9;
-    }
-
-    table tr:hover {
-      background-color: #f1f1f1;
+    th .sort-indicator {
+      margin-left: 5px;
+      font-size: 12px;
     }
   </style>
 </head>
 <body>
-  <h1>Student Details</h1>
+  <h1>Student Management System</h1>
   
-  <!-- Search Container -->
   <div class="search-container">
-    <input type="text" id="searchInput" placeholder="Search ">
+    <input type="text" id="searchInput" placeholder="Search by any field">
     <button id="searchButton">Search</button>
     <button id="resetButton">Reset</button>
   </div>
@@ -76,57 +55,89 @@
   <table id="studentTable">
     <thead>
       <tr>
-        <th>ID</th>
-        <th>First Name</th>
-        <th>Last Name</th>
-        <th>Date of Birth</th>
-        <th>Gender</th>
-        <th>Contact Number</th>
-        <th>Email</th>
-        <th>Address</th>
-        <th>Enrollment Date</th>
-        <th>Emergency Contact</th>
+        <th data-field="StudentID">ID <span class="sort-indicator"></span></th>
+        <th data-field="FirstName">First Name <span class="sort-indicator"></span></th>
+        <th data-field="LastName">Last Name <span class="sort-indicator"></span></th>
+        <th data-field="DateOfBirth">Date of Birth <span class="sort-indicator"></span></th>
+        <th data-field="Gender">Gender <span class="sort-indicator"></span></th>
+        <th data-field="ContactNumber">Contact Number <span class="sort-indicator"></span></th>
+        <th data-field="Email">Email <span class="sort-indicator"></span></th>
+        <th data-field="Address">Address <span class="sort-indicator"></span></th>
+        <th data-field="EnrollmentDate">Enrollment Date <span class="sort-indicator"></span></th>
+        <th data-field="EmergencyContact">Emergency Contact <span class="sort-indicator"></span></th>
       </tr>
     </thead>
     <tbody>
       <!-- Rows will be added here dynamically -->
     </tbody>
   </table>
+
   <script>
+    // Initialize sort state
+    const sortState = {
+      field: null,
+      order: 'asc' // 'asc' or 'desc'
+    };
+
+    // Function to clear sort indicators
+    function clearSortIndicators() {
+      const indicators = document.querySelectorAll('.sort-indicator');
+      indicators.forEach(indicator => {
+        indicator.textContent = '';
+      });
+    }
+
+    // Function to update sort indicators
+    function updateSortIndicators(field, order) {
+      clearSortIndicators();
+      const header = document.querySelector(`th[data-field="${field}"] .sort-indicator`);
+      if (header) {
+        header.textContent = order === 'asc' ? '▲' : '▼';
+      }
+    }
+
     // Function to fetch and display students
-    function fetchAndDisplayStudents(query = "") {
-      console.log("Search query:", query); // Debugging line
-  
+    function fetchAndDisplayStudents(query = "", sortField = null, sortOrder = 'asc') {
+      console.log("Search query:", query);
+      console.log("Sort Field:", sortField, "Sort Order:", sortOrder);
+
       let url = "http://localhost:3000/students";
-  
+      const params = new URLSearchParams();
+
       if (query) {
-        const params = new URLSearchParams();
         params.append("query", query);
+      }
+
+      if (sortField) {
+        params.append("sortField", sortField);
+        params.append("sortOrder", sortOrder);
+      }
+
+      if ([...params].length > 0) {
         url += `?${params.toString()}`;
       }
-  
+
       fetch(url)
-        .then((response) => {
+        .then(response => {
           if (!response.ok) {
             throw new Error('Network response was not ok');
           }
           return response.json();
         })
-        .then((data) => {
+        .then(data => {
           const tableBody = document.getElementById("studentTable").querySelector("tbody");
           tableBody.innerHTML = ""; // Clear existing rows
-  
+
           if (data.length === 0) {
             const noDataRow = document.createElement("tr");
             noDataRow.innerHTML = `<td colspan="10">No matching records found.</td>`;
             tableBody.appendChild(noDataRow);
             return;
           }
-  
-          data.forEach((student) => {
+
+          data.forEach(student => {
             const row = document.createElement("tr");
-            console.log(student); // Confirm each student object
-  
+
             row.innerHTML = `
               <td>${student.StudentID}</td>
               <td>${student.FirstName}</td>
@@ -139,45 +150,71 @@
               <td>${new Date(student.EnrollmentDate).toLocaleDateString()}</td>
               <td>${student.EmergencyContact}</td>
             `;
-  
+
             tableBody.appendChild(row);
           });
         })
-        .catch((error) => {
+        .catch(error => {
           console.error('Error fetching student data:', error);
           const tableBody = document.getElementById("studentTable").querySelector("tbody");
           tableBody.innerHTML = `<tr><td colspan="10">Failed to load student details.</td></tr>`;
         });
     }
-  
+
     // Initialize table with all students on page load
     document.addEventListener('DOMContentLoaded', () => {
       fetchAndDisplayStudents();
     });
-  
+
     // Handle Search Button Click
     document.getElementById("searchButton").addEventListener("click", () => {
       const query = document.getElementById("searchInput").value.trim();
+      const { field, order } = sortState;
+
       if (query) {
-        fetchAndDisplayStudents(query); // Pass the query to the server
+        fetchAndDisplayStudents(query, field, order);
       } else {
         alert('Please enter a search term.');
       }
     });
-  
+
     // Handle Reset Button Click
     document.getElementById("resetButton").addEventListener("click", () => {
       document.getElementById("searchInput").value = "";
+      
+      // Reset sort state
+      sortState.field = null;
+      sortState.order = 'asc';
+      clearSortIndicators();
+
       fetchAndDisplayStudents();
     });
-  
-    // Optional: Allow pressing Enter to trigger search
-    document.getElementById("searchInput").addEventListener("keypress", (event) => {
-      if (event.key === "Enter") {
-        document.getElementById("searchButton").click();
-      }
+
+    // Add click event listeners to table headers for sorting
+    const headers = document.querySelectorAll("th[data-field]");
+    headers.forEach(header => {
+      header.addEventListener("click", () => {
+        const field = header.getAttribute("data-field");
+        let order = 'asc';
+
+        if (sortState.field === field) {
+          // Toggle sort order if the same header is clicked
+          order = sortState.order === 'asc' ? 'desc' : 'asc';
+        }
+
+        // Update sort state
+        sortState.field = field;
+        sortState.order = order;
+
+        // Update sort indicators
+        updateSortIndicators(field, order);
+
+        const query = document.getElementById("searchInput").value.trim();
+        fetchAndDisplayStudents(query, field, order);
+      });
     });
   </script>
-  <script src="js/script.js"></script>
+  <!-- Remove the following line if script.js is not needed -->
+  <!-- <script src="js/script.js"></script> -->
 </body>
 </html>
