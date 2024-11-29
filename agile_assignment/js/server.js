@@ -18,7 +18,7 @@ const db = mysql.createConnection({
   host: 'localhost',
   user: 'agile',
   password: 'admin', // Replace with your MySQL password
-  database: 'tuition'     // Replace with your database name
+  database: 'tuition' // Replace with your database name
 });
 
 db.connect((err) => {
@@ -33,8 +33,6 @@ db.connect((err) => {
 app.use(bodyParser.json());
 app.use(express.static(__dirname));
 
-//Modify from here
-
 // Route to handle subject creation
 app.post('/createSubject', (req, res) => {
   const { subjectName, description, level } = req.body;
@@ -44,19 +42,32 @@ app.post('/createSubject', (req, res) => {
     return res.status(400).json({ message: 'All fields are required.' });
   }
 
-  // SQL query to insert data into the "subjects" table
-  const query = 'INSERT INTO subjects (subjectName, description, level) VALUES (?, ?, ?)';
-  db.query(query, [subjectName, description, level], (err, results) => {
+  // Check if subject name already exists
+  const checkQuery = 'SELECT * FROM subjects WHERE subjectName = ?';
+  db.query(checkQuery, [subjectName], (err, results) => {
     if (err) {
-      console.error('Error inserting data:', err.stack);
+      console.error('Error checking subject name:', err.stack);
       return res.status(500).json({ message: 'Internal server error.' });
     }
 
-    res.status(200).json({ message: 'Subject created successfully!' });
+    if (results.length > 0) {
+      return res.status(409).json({ message: 'Subject name already exists.' }); // HTTP 409 Conflict
+    }
+
+    // If no duplicate, insert the new subject
+    const insertQuery = 'INSERT INTO subjects (subjectName, description, level) VALUES (?, ?, ?)';
+    db.query(insertQuery, [subjectName, description, level], (err, results) => {
+      if (err) {
+        console.error('Error inserting data:', err.stack);
+        return res.status(500).json({ message: 'Internal server error.' });
+      }
+
+      res.status(200).json({ message: 'Subject created successfully!' });
+    });
   });
 });
 
-// Define the /subjects route
+// Route to fetch all subjects
 app.get('/subjects', (req, res) => {
   const query = 'SELECT * FROM subjects';
   db.query(query, (err, results) => {
@@ -64,14 +75,11 @@ app.get('/subjects', (req, res) => {
       console.error('Error fetching subjects:', err.stack);
       return res.status(500).json({ error: 'Database query failed' });
     }
-    res.json(results); // Send the fetched data as JSON
+    res.json(results);
   });
 });
-
-//Modify until here
 
 // Start the server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
-
