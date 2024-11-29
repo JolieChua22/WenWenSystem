@@ -45,6 +45,20 @@ app.get('/get-teachers', (req, res) => {
   });
 });
 
+// Route to fetch subjects for the dropdown in createClasses.html
+app.get('/get-subjects', (req, res) => {
+  console.log('Fetching subjects...');
+  const query = 'SELECT SubjectID, SubjectName FROM subjects';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching subjects:', err.stack);
+      return res.status(500).json({ message: 'Database error' });
+    }
+    res.status(200).json(results); // Return subject details
+  });
+});
+
+
 // Route to handle class creation from createClasses.html
 app.post('/create-class', (req, res) => {
   const { className, subject, teacherId, day, startTime, endTime, roomNumber } = req.body;

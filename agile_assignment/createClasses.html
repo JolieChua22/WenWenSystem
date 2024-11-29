@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Class</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
@@ -20,8 +20,12 @@
             </div>
             <div class="form-group">
                 <label for="subject">Subject:</label>
-                <input type="text" id="subject" name="subject" placeholder="Enter subject" required>
+                <select id="subject" name="subject" required>
+                    <option value="">Select a subject</option>
+                    <!-- Subject options will be populated dynamically -->
+                </select>
             </div>
+
             <div class="form-group">
                 <label for="teacher">Teacher:</label>
                 <select id="teacher" name="teacher" required>
@@ -108,6 +112,38 @@
                     messageElement.style.color = 'red';
                 });
         });
+
+        // Populate subject dropdown dynamically
+            document.addEventListener('DOMContentLoaded', () => {
+                // Fetch teachers
+                fetch('http://localhost:3000/get-teachers')
+                    .then((response) => response.json())
+                    .then((data) => {
+                        const teacherDropdown = document.getElementById('teacher');
+                        data.forEach((teacher) => {
+                            const option = document.createElement('option');
+                            option.value = teacher.TeacherID;
+                            option.textContent = `${teacher.FirstName} ${teacher.LastName} (${teacher.SubjectSpecialization})`;
+                            teacherDropdown.appendChild(option);
+                        });
+                    })
+                    .catch((error) => console.error('Error fetching teachers:', error));
+
+                // Fetch subjects
+                fetch('http://localhost:3000/get-subjects')
+                    .then((response) => response.json())
+                    .then((data) => {
+                        const subjectDropdown = document.getElementById('subject');
+                        data.forEach((subject) => {
+                            const option = document.createElement('option');
+                            option.value = subject.SubjectID;
+                            option.textContent = subject.SubjectName;
+                            subjectDropdown.appendChild(option);
+                        });
+                    })
+                    .catch((error) => console.error('Error fetching subjects:', error));
+            });
+
     </script>
 </body>
 
