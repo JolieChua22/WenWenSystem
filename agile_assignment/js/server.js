@@ -32,7 +32,12 @@ app.use(cors());
 //Modify from here
 app.post("/submit", async (req, res) => {
   try {
-    const { firstName, lastName, dob, enrollmentDate } = req.body;
+    const { firstName, lastName, dob, enrollmentDate, contact } = req.body;
+
+    // Validate contact number (only digits allowed)
+    if (!/^\d+$/.test(contact)) {
+      return res.status(400).json({ error: "Contact number must contain only digits." });
+    }
 
     // Validate age
     const today = new Date();
@@ -76,6 +81,7 @@ app.post("/submit", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 
 
