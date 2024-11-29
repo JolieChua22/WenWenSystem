@@ -61,11 +61,34 @@ app.get('/students', (req, res) => {
   let params = [];
 
   if (queryTerm) {
-    // Define the fields to search across (excluding StudentID)
-    const searchFields = ['FirstName', 'LastName', 'Email'];
+    // Define all fields to search across
+    const searchFields = [
+      'StudentID',
+      'FirstName',
+      'LastName',
+      'DateOfBirth',
+      'Gender',
+      'ContactNumber',
+      'Email',
+      'Address',
+      'EnrollmentDate',
+      'EmergencyContact'
+    ];
 
     // Construct the WHERE clause with OR conditions for each field
-    const searchConditions = searchFields.map(field => `LOWER(${field}) LIKE LOWER(?)`).join(' OR ');
+    const searchConditions = searchFields.map(field => {
+      if (['StudentID'].includes(field)) {
+        // Cast numeric fields to CHAR for LIKE comparison
+        return `CAST(${field} AS CHAR) LIKE ?`;
+      } else if (['DateOfBirth', 'EnrollmentDate'].includes(field)) {
+        // Format date fields as strings
+        return `DATE_FORMAT(${field}, '%Y-%m-%d') LIKE ?`;
+      } else {
+        // For string fields
+        return `${field} LIKE ?`;
+      }
+    }).join(' OR ');
+
     query += ` WHERE ${searchConditions}`;
 
     // Prepare the search pattern for each field
@@ -82,7 +105,7 @@ app.get('/students', (req, res) => {
       return res.status(500).send({ error: 'Database error' });
     }
     console.log('Number of Records Found:', results.length);
-    res.json(results);
+    res.json(results); // Ensure 'results' is correctly referenced
   });
 });
 //modify until here
