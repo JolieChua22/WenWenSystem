@@ -8,6 +8,14 @@ document.addEventListener("DOMContentLoaded", function () {
       studentForm.addEventListener("submit", function (event) {
         event.preventDefault(); // Prevent default form submission
 
+        // Validate contact number (only digits allowed)
+        const contactNumber = document.getElementById("contact").value;
+        if (!/^\d+$/.test(contactNumber)) {
+          alert("Contact number must contain only digits.");
+          return; // Stop form submission
+        }
+
+        // Validate age (at least 7 years old)
         const dob = new Date(document.getElementById("dob").value);
         const today = new Date();
         let ageInYears = today.getFullYear() - dob.getFullYear();
@@ -23,6 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
           return; // Stop form submission
         }
 
+        // Validate enrollment date
         const enrollmentDateInput = document.getElementById("enrollmentDate").value;
         const enrollmentDate = new Date(enrollmentDateInput);
         today.setHours(0, 0, 0, 0);
@@ -38,7 +47,7 @@ document.addEventListener("DOMContentLoaded", function () {
           lastName: document.getElementById("lastName").value,
           dob: document.getElementById("dob").value,
           gender: document.getElementById("gender").value,
-          contact: document.getElementById("contact").value,
+          contact: contactNumber,
           email: document.getElementById("email").value,
           address: document.getElementById("address").value,
           enrollmentDate: document.getElementById("enrollmentDate").value,
