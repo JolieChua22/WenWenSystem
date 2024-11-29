@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Student Management</title>
+  <title>Wen Wen Tuition Student Management</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -44,7 +44,8 @@
   </style>
 </head>
 <body>
-  <h1>Student Management System</h1>
+  <h1>Wenwen Tution Centre Management System  </h1>
+  <h2>Student Management </h2>
   
   <div class="search-container">
     <input type="text" id="searchInput" placeholder="Search by any field">
@@ -212,6 +213,14 @@
         const query = document.getElementById("searchInput").value.trim();
         fetchAndDisplayStudents(query, field, order);
       });
+      
+    });
+        // **New Addition: Enable "Enter" Key to Trigger Search**
+        document.getElementById("searchInput").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault(); // Prevent form submission or other default actions
+        document.getElementById("searchButton").click(); // Trigger the search button click
+      }
     });
   </script>
   <!-- Remove the following line if script.js is not needed -->
