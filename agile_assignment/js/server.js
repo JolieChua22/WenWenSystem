@@ -33,27 +33,7 @@ app.use(bodyParser.json());
 app.use(express.static(__dirname));
 
 //Modify from here
-// Route to handle form submission
-// app.post('/submit', (req, res) => {
-//   const { name, email } = req.body;
-
-//   const query = 'INSERT INTO users (name, email) VALUES (?, ?)';
-//   db.query(query, [name, email], (err, results) => {
-//     if (err) {
-//       console.error('Error inserting data:', err.stack);
-//       res.status(500).json({ message: 'Internal server error' });
-//       return;
-//     }
-
-//     res.status(200).json({ message: 'Data inserted successfully' });
-//   });
-// });
-
-
 // Route to fetch student details
-// Route to fetch student details with optional global search
-// Route to fetch student details with optional global search
-// Route to fetch student details with optional global search
 app.get('/students', (req, res) => {
   console.log('Fetching students...');
   const queryTerm = req.query.query;
