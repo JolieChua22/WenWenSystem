@@ -44,10 +44,12 @@ db.connect((err) => {
 // Middleware
 app.use(bodyParser.json());
 app.use(express.static(__dirname));
+const cors = require('cors');
+
+// Enable CORS for all requests
+app.use(cors());
 
 //Modify from here
-// Route to fetch student details
-
 // Route to fetch student details with optional global search and sorting
 app.get('/students', (req, res) => {
   console.log('Fetching students...');
@@ -115,6 +117,8 @@ app.post('/createSubject', (req, res) => {
   });
 });
 //modify until here
+
+
   // Check if subject name already exists
   const checkQuery = 'SELECT * FROM subjects WHERE subjectName = ?';
   db.query(checkQuery, [subjectName], (err, results) => {
@@ -156,3 +160,6 @@ app.get('/subjects', (req, res) => {
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
+
+
+
