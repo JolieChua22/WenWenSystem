@@ -44,16 +44,21 @@ db.connect((err) => {
 // Middleware
 app.use(bodyParser.json());
 app.use(express.static(__dirname));
+const cors = require('cors');
+
+// Enable CORS for all requests
+app.use(cors());
 
 //Modify from here
-// Route to fetch student details
-
 // Route to fetch student details with optional global search and sorting
 app.get('/students', (req, res) => {
   console.log('Fetching students...');
   const queryTerm = req.query.query;
   const sortField = req.query.sortField;
   const sortOrder = req.query.sortOrder === 'desc' ? 'DESC' : 'ASC'; // Default to ASC
+// Route to handle subject creation
+app.post('/createSubject', (req, res) => {
+  const { subjectName, description, level } = req.body;
 
   let query = 'SELECT * FROM Students';
   let params = [];
@@ -113,7 +118,48 @@ app.get('/students', (req, res) => {
 });
 //modify until here
 
+
+  // Check if subject name already exists
+  const checkQuery = 'SELECT * FROM subjects WHERE subjectName = ?';
+  db.query(checkQuery, [subjectName], (err, results) => {
+    if (err) {
+      console.error('Error checking subject name:', err.stack);
+      return res.status(500).json({ message: 'Internal server error.' });
+    }
+
+    if (results.length > 0) {
+      return res.status(409).json({ message: 'Subject name already exists.' }); // HTTP 409 Conflict
+    }
+
+    // If no duplicate, insert the new subject
+    const insertQuery = 'INSERT INTO subjects (subjectName, description, level) VALUES (?, ?, ?)';
+    db.query(insertQuery, [subjectName, description, level], (err, results) => {
+      if (err) {
+        console.error('Error inserting data:', err.stack);
+        return res.status(500).json({ message: 'Internal server error.' });
+      }
+
+      res.status(200).json({ message: 'Subject created successfully!' });
+    });
+  });
+});
+
+// Route to fetch all subjects
+app.get('/subjects', (req, res) => {
+  const query = 'SELECT * FROM subjects';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching subjects:', err.stack);
+      return res.status(500).json({ error: 'Database query failed' });
+    }
+    res.json(results);
+  });
+});
+
 // Start the server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
+
+
+
