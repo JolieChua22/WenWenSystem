@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wen Wen Tuition Student Management</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .search-container {
+      margin-bottom: 20px;
+    }
+    .search-container input {
+      width: 300px;
+      padding: 8px;
+      font-size: 16px;
+    }
+    .search-container button {
+      padding: 8px 16px;
+      font-size: 16px;
+      margin-left: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 8px;
+      text-align: center;
+      cursor: pointer; /* Indicate that headers are clickable */
+    }
+    th {
+      background-color: #f2f2f2;
+      position: relative; /* For positioning sort indicators */
+    }
+    th .sort-indicator {
+      margin-left: 5px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Wenwen Tution Centre Management System  </h1>
+  <h2>Student Management </h2>
+  
+  <div class="search-container">
+    <input type="text" id="searchInput" placeholder="Search by any field">
+    <button id="searchButton">Search</button>
+    <button id="resetButton">Reset</button>
+  </div>
+
+  <table id="studentTable">
+    <thead>
+      <tr>
+        <th data-field="StudentID">ID <span class="sort-indicator"></span></th>
+        <th data-field="FirstName">First Name <span class="sort-indicator"></span></th>
+        <th data-field="LastName">Last Name <span class="sort-indicator"></span></th>
+        <th data-field="DateOfBirth">Date of Birth <span class="sort-indicator"></span></th>
+        <th data-field="Gender">Gender <span class="sort-indicator"></span></th>
+        <th data-field="ContactNumber">Contact Number <span class="sort-indicator"></span></th>
+        <th data-field="Email">Email <span class="sort-indicator"></span></th>
+        <th data-field="Address">Address <span class="sort-indicator"></span></th>
+        <th data-field="EnrollmentDate">Enrollment Date <span class="sort-indicator"></span></th>
+        <th data-field="EmergencyContact">Emergency Contact <span class="sort-indicator"></span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Rows will be added here dynamically -->
+    </tbody>
+  </table>
+
+  <script>
+    // Initialize sort state
+    const sortState = {
+      field: null,
+      order: 'asc' // 'asc' or 'desc'
+    };
+
+    // Function to clear sort indicators
+    function clearSortIndicators() {
+      const indicators = document.querySelectorAll('.sort-indicator');
+      indicators.forEach(indicator => {
+        indicator.textContent = '';
+      });
+    }
+
+    // Function to update sort indicators
+    function updateSortIndicators(field, order) {
+      clearSortIndicators();
+      const header = document.querySelector(`th[data-field="${field}"] .sort-indicator`);
+      if (header) {
+        header.textContent = order === 'asc' ? '▲' : '▼';
+      }
+    }
+
+    // Function to fetch and display students
+    function fetchAndDisplayStudents(query = "", sortField = null, sortOrder = 'asc') {
+      console.log("Search query:", query);
+      console.log("Sort Field:", sortField, "Sort Order:", sortOrder);
+
+      let url = "http://localhost:3000/students";
+      const params = new URLSearchParams();
+
+      if (query) {
+        params.append("query", query);
+      }
+
+      if (sortField) {
+        params.append("sortField", sortField);
+        params.append("sortOrder", sortOrder);
+      }
+
+      if ([...params].length > 0) {
+        url += `?${params.toString()}`;
+      }
+
+      fetch(url)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          const tableBody = document.getElementById("studentTable").querySelector("tbody");
+          tableBody.innerHTML = ""; // Clear existing rows
+
+          if (data.length === 0) {
+            const noDataRow = document.createElement("tr");
+            noDataRow.innerHTML = `<td colspan="10">No matching records found.</td>`;
+            tableBody.appendChild(noDataRow);
+            return;
+          }
+
+          data.forEach(student => {
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+              <td>${student.StudentID}</td>
+              <td>${student.FirstName}</td>
+              <td>${student.LastName}</td>
+              <td>${new Date(student.DateOfBirth).toLocaleDateString()}</td>
+              <td>${student.Gender}</td>
+              <td>${student.ContactNumber}</td>
+              <td>${student.Email}</td>
+              <td>${student.Address}</td>
+              <td>${new Date(student.EnrollmentDate).toLocaleDateString()}</td>
+              <td>${student.EmergencyContact}</td>
+            `;
+
+            tableBody.appendChild(row);
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching student data:', error);
+          const tableBody = document.getElementById("studentTable").querySelector("tbody");
+          tableBody.innerHTML = `<tr><td colspan="10">Failed to load student details.</td></tr>`;
+        });
+    }
+
+    // Initialize table with all students on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchAndDisplayStudents();
+    });
+
+    // Handle Search Button Click
+    document.getElementById("searchButton").addEventListener("click", () => {
+      const query = document.getElementById("searchInput").value.trim();
+      const { field, order } = sortState;
+
+      if (query) {
+        fetchAndDisplayStudents(query, field, order);
+      } else {
+        alert('Please enter a search term.');
+      }
+    });
+
+    // Handle Reset Button Click
+    document.getElementById("resetButton").addEventListener("click", () => {
+      document.getElementById("searchInput").value = "";
+      
+      // Reset sort state
+      sortState.field = null;
+      sortState.order = 'asc';
+      clearSortIndicators();
+
+      fetchAndDisplayStudents();
+    });
+
+    // Add click event listeners to table headers for sorting
+    const headers = document.querySelectorAll("th[data-field]");
+    headers.forEach(header => {
+      header.addEventListener("click", () => {
+        const field = header.getAttribute("data-field");
+        let order = 'asc';
+
+        if (sortState.field === field) {
+          // Toggle sort order if the same header is clicked
+          order = sortState.order === 'asc' ? 'desc' : 'asc';
+        }
+
+        // Update sort state
+        sortState.field = field;
+        sortState.order = order;
+
+        // Update sort indicators
+        updateSortIndicators(field, order);
+
+        const query = document.getElementById("searchInput").value.trim();
+        fetchAndDisplayStudents(query, field, order);
+      });
+      
+    });
+        // **New Addition: Enable "Enter" Key to Trigger Search**
+        document.getElementById("searchInput").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault(); // Prevent form submission or other default actions
+        document.getElementById("searchButton").click(); // Trigger the search button click
+      }
+    });
+  </script>
+  <!-- Remove the following line if script.js is not needed -->
+  <!-- <script src="js/script.js"></script> -->
+</body>
+</html>
