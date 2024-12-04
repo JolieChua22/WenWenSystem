@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View All Subjects</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .table-container {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    table th, table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+
+    table th {
+      background-color: #007bff;
+      color: white;
+    }
+
+    table tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    table tr:hover {
+      background-color: #f1f1f1;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>View All Subjects</h1>
+
+  <!-- Subjects Table -->
+  <div class="table-container">
+    <h2>All Subjects</h2>
+    <table id="subjectsTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Level</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows will be added dynamically -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // Function to Fetch and Display All Subjects
+    async function loadSubjects() {
+      try {
+        const response = await fetch('http://localhost:3000/subjects', { method: 'GET' });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch subjects. Status: ${response.status}`);
+        }
+
+        const subjects = await response.json();
+        const tableBody = document.getElementById('subjectsTable').querySelector('tbody');
+
+        // Clear existing rows
+        tableBody.innerHTML = '';
+
+        // Populate the table with subjects
+        subjects.forEach(subject => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${subject.SubjectID}</td>
+            <td>${subject.SubjectName}</td>
+            <td>${subject.Description}</td>
+            <td>${subject.Level}</td>
+          `;
+          tableBody.appendChild(row);
+        });
+      } catch (error) {
+        console.error('Error loading subjects:', error);
+        alert('Failed to load subjects.');
+      }
+    }
+
+    // Load subjects on page load
+    window.onload = loadSubjects;
+  </script>
+</body>
+
+</html>
