@@ -298,30 +298,30 @@
     }
 
     // Add event listener for subject selection
-    document.getElementById('subjectSelect').addEventListener('change', function() {
-      const subjectId = this.value;
+    // document.getElementById('subjectSelect').addEventListener('change', function() {
+    //   const subjectId = this.value;
 
-      const classSelect = document.getElementById('classSelect');
-      classSelect.innerHTML = '<option value="">Select a class</option>';
+    //   const classSelect = document.getElementById('classSelect');
+    //   classSelect.innerHTML = '<option value="">Select a class</option>';
 
-      if (subjectId) {
-        // Fetch classes based on selected subject
-        fetch(`/classes-by-subject?subjectId=${subjectId}`)
-          .then(response => response.json())
-          .then(classes => {
-            classes.forEach(cls => {
-              const option = document.createElement('option');
-              option.value = cls.ClassID;
-              option.textContent = cls.ClassName;
-              classSelect.appendChild(option);
-            });
-          })
-          .catch(error => {
-            console.error('Error fetching classes:', error);
-            classSelect.innerHTML = '<option value="">Failed to load classes</option>';
-          });
-      }
-    });
+    //   if (subjectId) {
+    //     // Fetch classes based on selected subject
+    //     fetch(`/classes-by-subject?subjectId=${subjectId}`)
+    //       .then(response => response.json())
+    //       .then(classes => {
+    //         classes.forEach(cls => {
+    //           const option = document.createElement('option');
+    //           option.value = cls.ClassID;
+    //           option.textContent = cls.ClassName;
+    //           classSelect.appendChild(option);
+    //         });
+    //       })
+    //       .catch(error => {
+    //         console.error('Error fetching classes:', error);
+    //         classSelect.innerHTML = '<option value="">Failed to load classes</option>';
+    //       });
+    //   }
+    // });
 
     // Close the modal when the user clicks on <span> (x)
     closeModal.onclick = function() {
