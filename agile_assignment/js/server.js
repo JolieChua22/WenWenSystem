@@ -165,6 +165,83 @@ app.get('/students', (req, res) => {
   });
 });
 
+
+// ================== New Routes for Assigning Students to Classes ==================
+
+// Route to fetch all classes
+app.get('/classes', (req, res) => {
+  console.log('Fetching classes...');
+  const query = 'SELECT ClassID, ClassName FROM classes';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching classes:', err.stack);
+      return res.status(500).json({ message: 'Database error' });
+    }
+    res.status(200).json(results); // Return class details
+  });
+});
+
+// Route to assign a student to a class
+app.post('/assign-student', (req, res) => {
+  const { studentId, classId } = req.body;
+
+  // Validate inputs
+  if (!studentId || !classId) {
+    return res.status(400).json({ message: 'Student ID and Class ID are required.' });
+  }
+
+  // Insert the assignment into student_classes table
+  const insertQuery = 'INSERT INTO student_classes (StudentID, ClassID) VALUES (?, ?)';
+  db.query(insertQuery, [studentId, classId], (err, results) => {
+    if (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        // Duplicate entry, already assigned
+        return res.status(409).json({ message: 'Student is already assigned to this class.' });
+      }
+      console.error('Error assigning student to class:', err.stack);
+      return res.status(500).json({ message: 'Internal server error.' });
+    }
+
+    res.status(200).json({ message: 'Student assigned to class successfully!' });
+  });
+});
+
+// Route to fetch all class assignments
+app.get('/student-classes', (req, res) => {
+  console.log('Fetching student-class assignments...');
+  const query = `
+    SELECT sc.StudentID, s.FirstName, s.LastName, sc.ClassID, c.ClassName
+    FROM student_classes sc
+    JOIN Students s ON sc.StudentID = s.StudentID
+    JOIN classes c ON sc.ClassID = c.ClassID
+  `;
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching student-class assignments:', err.stack);
+      return res.status(500).json({ message: 'Database error' });
+    }
+    res.status(200).json(results); // Return assignments
+  });
+});
+
+// Route to fetch classes by subject ID
+app.get('/classes-by-subject', (req, res) => {
+  const subjectId = req.query.subjectId;
+  
+  if (!subjectId) {
+    return res.status(400).json({ message: 'Subject ID is required.' });
+  }
+
+  const query = 'SELECT ClassID, ClassName FROM classes WHERE Subject = ?';
+  db.query(query, [subjectId], (err, results) => {
+    if (err) {
+      console.error('Error fetching classes by subject:', err.stack);
+      return res.status(500).json({ message: 'Database error' });
+    }
+    res.status(200).json(results);
+  });
+});
+
 //ks
 // Route to handle subject creation
 app.post('/createSubject', (req, res) => {
