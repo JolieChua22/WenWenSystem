@@ -431,6 +431,13 @@ fetch(`http://localhost:3000/classes-by-subject?subjectId=${subjectId}`)
       alert('Please select a performance grade.');
       return;
     }
+      // Confirmation Prompt
+      const confirmation = confirm("Are you sure you want to assign the selected student to this class?");
+    if (!confirmation) {
+      // If the admin cancels, do not proceed with the assignment
+      return;
+    }
+
 
     // Send assignment to the server
     fetch('http://localhost:3000/assign-student', {
