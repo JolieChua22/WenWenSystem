@@ -132,31 +132,42 @@
 
   
   <!-- Modal for Assigning Class -->
-  <div id="assignModal" class="modal">
-    <div class="modal-content">
-      <span class="close">&times;</span>
-      <h3>Assign Class to Student</h3>
-      <p id="modalStudentName"></p>
-      
-      <!-- Add Subject Dropdown -->
-      <label for="subjectSelect">Select Subject:</label>
-      <select id="subjectSelect">
-        <option value="">Select a subject</option>
-        <!-- Subject options will be populated dynamically -->
-      </select>
-      <br><br>
-      
-      <label for="classSelect">Select Class:</label>
-      <select id="classSelect">
-        <option value="">Select a class</option>
-        <!-- Class options will be populated dynamically -->
-      </select>
-      <br><br>
-      
-      <button id="assignButton">Assign</button>
-    </div>
+ <!-- Modal for Assigning Class -->
+<div id="assignModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h3>Assign Class to Student</h3>
+    <p id="modalStudentName"></p>
+    
+    <!-- Add Subject Dropdown -->
+    <select id="subjectSelect">
+      <option value="">Select a subject</option>
+      <!-- Subject options will be populated dynamically -->
+    </select>
+    <br><br>
+    
+    <!-- Performance Grade Dropdown -->
+    <label for="performanceGrade">Performance Grade:</label>
+    <select id="performanceGrade">
+      <option value="">Select a grade</option>
+      <option value="A">A</option>
+      <option value="B">B</option>
+      <option value="C">C</option>
+      <option value="D">D</option>
+      <option value="F">F</option>
+      <option value="-">-</option>
+    </select>
+    <br><br>
+    
+    <select id="classSelect">
+      <option value="">Select a class</option>
+      <!-- Class options will be populated dynamically -->
+    </select>
+    <br><br>
+    
+    <button id="assignButton">Assign</button>
   </div>
-
+</div>
   <script>
     // Initialize sort state
     const sortState = {
@@ -338,45 +349,54 @@ fetch(`http://localhost:3000/classes-by-subject?subjectId=${subjectId}`)
     }
 
     // Handle Assign Button Click
-    assignButton.addEventListener("click", () => {
-      const selectedClassId = classSelect.value;
 
-      if (!selectedClassId) {
-        alert('Please select a class to assign.');
-        return;
-      }
+  // Handle Assign Button Click
+  assignButton.addEventListener("click", () => {
+    const selectedClassId = classSelect.value;
+    const selectedPerformanceGrade = document.getElementById('performanceGrade').value;
 
-      if (!currentStudentId) {
-        alert('No student selected.');
-        return;
-      }
+    if (!selectedClassId) {
+      alert('Please select a class to assign.');
+      return;
+    }
 
-      // Send assignment to the server
-      fetch('http://localhost:3000/assign-student', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          studentId: currentStudentId,
-          classId: selectedClassId
-        })
+    if (!currentStudentId) {
+      alert('No student selected.');
+      return;
+    }
+
+    // Optional: Validate performance grade selection
+    if (!selectedPerformanceGrade) {
+      alert('Please select a performance grade.');
+      return;
+    }
+
+    // Send assignment to the server
+    fetch('http://localhost:3000/assign-student', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        studentId: currentStudentId,
+        classId: selectedClassId,
+        performanceGrade: selectedPerformanceGrade
       })
-        .then(response => response.json().then(data => ({ status: response.status, body: data })))
-        .then(({ status, body }) => {
-          if (status === 200) {
-            alert(body.message);
-            assignModal.style.display = "none";
-          } else {
-            alert(body.message || 'Failed to assign class.');
-          }
-        })
-        .catch(error => {
-          console.error('Error assigning class:', error);
-          alert('An error occurred while assigning the class.');
-        });
-    });
-
+    })
+      .then(response => response.json().then(data => ({ status: response.status, body: data })))
+      .then(({ status, body }) => {
+        if (status === 200) {
+          alert(body.message);
+          assignModal.style.display = "none";
+        } else {
+          alert(body.message || 'Failed to assign class.');
+        }
+      })
+      .catch(error => {
+        console.error('Error assigning class:', error);
+        alert('An error occurred while assigning the class.');
+      });
+  });
     // Initialize table with all students on page load
     document.addEventListener('DOMContentLoaded', () => {
       fetchAndDisplayStudents();

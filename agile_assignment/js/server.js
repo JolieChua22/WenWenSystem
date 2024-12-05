@@ -183,25 +183,53 @@ app.get('/classes', (req, res) => {
 
 // Route to assign a student to a class
 app.post('/assign-student', (req, res) => {
-  const { studentId, classId } = req.body;
+  const { studentId, classId, performanceGrade } = req.body;
 
   // Validate inputs
   if (!studentId || !classId) {
     return res.status(400).json({ message: 'Student ID and Class ID are required.' });
   }
 
-  // Insert the assignment into student_class_relationship table
-  const insertQuery = 'INSERT INTO student_class_relationship (StudentID, ClassID,EnrollmentDate) VALUES (?, ?,CURDATE())';
-  db.query(insertQuery, [studentId, classId], (err, results) => {
+  // Optional: Validate performanceGrade if provided
+  const allowedGrades = ['A', 'B', 'C', 'D', 'F', '-'];
+  if (performanceGrade && !allowedGrades.includes(performanceGrade.toUpperCase())) {
+    return res.status(400).json({ message: 'Invalid Performance Grade.' });
+  }
+
+  // Check if the assignment already exists
+  const checkQuery = `
+    SELECT * FROM student_class_relationship
+    WHERE StudentID = ? AND ClassID = ?
+    LIMIT 1
+  `;
+  
+  db.query(checkQuery, [studentId, classId], (err, results) => {
     if (err) {
-      console.error('Error assigning student to class:', err);
+      console.error('Error checking existing assignment:', err);
       return res.status(500).json({ message: 'Database error' });
     }
 
-    res.status(200).json({ message: 'Student assigned to class successfully!' });
+    if (results.length > 0) {
+      // Assignment already exists
+      return res.status(409).json({ message: 'Student is already assigned to this class.' });
+    }
+
+    // Insert the assignment since it doesn't exist
+    const insertQuery = `
+      INSERT INTO student_class_relationship (StudentID, ClassID, EnrollmentDate, PerformanceGrade)
+      VALUES (?, ?, CURDATE(), ?)
+    `;
+    
+    db.query(insertQuery, [studentId, classId, performanceGrade || null], (err, results) => {
+      if (err) {
+        console.error('Error assigning student to class:', err);
+        return res.status(500).json({ message: 'Database error' });
+      }
+
+      res.status(200).json({ message: 'Student assigned to class successfully!' });
+    });
   });
 });
-
 // Route to fetch all class assignments
 app.get('/student-classes', (req, res) => {
   console.log('Fetching student-class assignments...');
