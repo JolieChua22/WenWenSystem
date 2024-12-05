@@ -60,7 +60,7 @@ app.post('/login', (req, res) => {
       }
 
       if (results.length === 0) {
-          return res.status(401).json({ message: 'Invalid TeacherID or Password.' });
+          return res.status(401).json({ message: 'Invalid TeacherID or no matching record found in the database.' });
       }
 
       const teacher = results[0];
@@ -73,7 +73,7 @@ app.post('/login', (req, res) => {
               lastName: teacher.LastName
           });
       } else {
-          res.status(401).json({ message: 'Invalid TeacherID or Password.' });
+          res.status(401).json({ message: 'Your password is invalid. Please try again.' });
       }
   });
 });
