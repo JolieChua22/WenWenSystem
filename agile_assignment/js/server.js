@@ -190,16 +190,12 @@ app.post('/assign-student', (req, res) => {
     return res.status(400).json({ message: 'Student ID and Class ID are required.' });
   }
 
-  // Insert the assignment into student_classes table
-  const insertQuery = 'INSERT INTO student_classes (StudentID, ClassID) VALUES (?, ?)';
+  // Insert the assignment into student_class_relationship table
+  const insertQuery = 'INSERT INTO student_class_relationship (StudentID, ClassID,EnrollmentDate) VALUES (?, ?,CURDATE())';
   db.query(insertQuery, [studentId, classId], (err, results) => {
     if (err) {
-      if (err.code === 'ER_DUP_ENTRY') {
-        // Duplicate entry, already assigned
-        return res.status(409).json({ message: 'Student is already assigned to this class.' });
-      }
-      console.error('Error assigning student to class:', err.stack);
-      return res.status(500).json({ message: 'Internal server error.' });
+      console.error('Error assigning student to class:', err);
+      return res.status(500).json({ message: 'Database error' });
     }
 
     res.status(200).json({ message: 'Student assigned to class successfully!' });
@@ -210,7 +206,7 @@ app.post('/assign-student', (req, res) => {
 app.get('/student-classes', (req, res) => {
   console.log('Fetching student-class assignments...');
   const query = `
-    SELECT sc.StudentID, s.FirstName, s.LastName, sc.ClassID, c.ClassName
+    SELECT sc.StudentID, s.FirstName, s.LastName, sc.ClassID, c.ClassName, sc.EnrollmentDate
     FROM student_classes sc
     JOIN Students s ON sc.StudentID = s.StudentID
     JOIN classes c ON sc.ClassID = c.ClassID
