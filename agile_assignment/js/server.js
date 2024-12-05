@@ -266,6 +266,44 @@ app.get('/classes-by-subject', (req, res) => {
   });
 });
 
+// Route to fetch class details by ClassID, including Teacher's name
+app.get('/class-details', (req, res) => {
+  const classId = req.query.classId;
+
+  if (!classId) {
+    return res.status(400).json({ message: 'Class ID is required.' });
+  }
+
+  const query = `
+    SELECT 
+      c.ClassID, 
+      c.ClassName, 
+      s.SubjectName, 
+      CONCAT(t.FirstName, ' ', t.LastName) AS TeacherName,
+      c.Day, 
+      c.StartTime, 
+      c.EndTime, 
+      c.RoomNumber
+    FROM classes c
+    JOIN subjects s ON c.Subject = s.SubjectID
+    JOIN teachers t ON c.TeacherID = t.TeacherID
+    WHERE c.ClassID = ?
+  `;
+
+  db.query(query, [classId], (err, results) => {
+    if (err) {
+      console.error('Error fetching class details:', err.stack);
+      return res.status(500).json({ message: 'Database error' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Class not found.' });
+    }
+
+    res.status(200).json(results[0]);
+  });
+});
+
 //ks
 // Route to handle subject creation
 app.post('/createSubject', (req, res) => {
