@@ -396,55 +396,64 @@ app.post('/assign-tutor', (req, res) => {
 
   // Validate inputs
   if (!tutorID || !subjectID) {
-      return res.status(400).json({ success: false, message: 'Tutor ID and Subject ID are required.' });
+    return res.status(400).json({ success: false, message: 'Tutor ID and Subject ID are required.' });
   }
 
-  // Check if the tutor already teaches two subjects
-  const countQuery = `
+  // Check if the tutor is already assigned to the selected subject
+  const checkAssignmentQuery = `
+    SELECT * FROM TeacherSubject 
+    WHERE TeacherID = ? AND SubjectID = ? AND Status = 'Active'
+  `;
+  db.query(checkAssignmentQuery, [tutorID, subjectID], (err, results) => {
+    if (err) {
+      console.error('Error checking assignment:', err.stack);
+      return res.status(500).json({ success: false, message: 'Database error.' });
+    }
+
+    if (results.length > 0) {
+      // If the teacher is already assigned to the subject, return an error message
+      return res.status(409).json({ success: false, message: 'This tutor is already assigned to the selected subject.' });
+    }
+
+    // Check if the tutor is already teaching two active subjects
+    const countQuery = `
       SELECT COUNT(*) AS subjectCount 
       FROM TeacherSubject 
       WHERE TeacherID = ? AND Status = 'Active'
-  `;
-  db.query(countQuery, [tutorID], (err, results) => {
+    `;
+    db.query(countQuery, [tutorID], (err, results) => {
       if (err) {
-          console.error('Error checking subject count:', err.stack);
-          return res.status(500).json({ success: false, message: 'Database error.' });
+        console.error('Error checking subject count:', err.stack);
+        return res.status(500).json({ success: false, message: 'Database error.' });
       }
 
       const { subjectCount } = results[0];
       if (subjectCount >= 2) {
-          return res.status(409).json({ success: false, message: 'This tutor is already teaching two subjects.' });
+        // If the tutor is teaching two active subjects, return an error message
+        return res.status(409).json({ success: false, message: 'This tutor is already teaching two subjects.' });
       }
 
-      // Check if the tutor is already assigned to the subject
-      const checkQuery = `
-          SELECT * FROM TeacherSubject 
-          WHERE TeacherID = ? AND SubjectID = ? AND Status = 'Active'
+      // Check if the record exists in the database
+      const checkAndUpsertQuery = `
+        INSERT INTO TeacherSubject (TeacherID, SubjectID, Status)
+        VALUES (?, ?, 'Active')
+        ON DUPLICATE KEY UPDATE
+        Status = 'Active'
       `;
-      db.query(checkQuery, [tutorID, subjectID], (err, results) => {
-          if (err) {
-              console.error('Error checking assignment:', err.stack);
-              return res.status(500).json({ success: false, message: 'Database error.' });
-          }
+      db.query(checkAndUpsertQuery, [tutorID, subjectID], (err, results) => {
+        if (err) {
+          console.error('Error during assignment:', err.stack);
+          return res.status(500).json({ success: false, message: 'Database error during assignment.' });
+        }
 
-          if (results.length > 0) {
-              return res.status(409).json({ success: false, message: 'This tutor is already assigned to the selected subject.' });
-          }
-
-          // Insert new assignment
-          const insertQuery = `
-              INSERT INTO TeacherSubject (TeacherID, SubjectID, Status)
-              VALUES (?, ?, 'Active')
-          `;
-          db.query(insertQuery, [tutorID, subjectID], (err) => {
-              if (err) {
-                  console.error('Error assigning tutor:', err.stack);
-                  return res.status(500).json({ success: false, message: 'Database error during assignment.' });
-              }
-
-              res.status(201).json({ success: true, message: 'Tutor successfully assigned to subject.' });
-          });
+        if (results.affectedRows === 1) {
+          res.status(201).json({ success: true, message: 'Tutor successfully assigned to subject.' });
+        } else {
+          res.status(200).json({ success: true, message: 'Tutor assignment reactivated successfully.' });
+        }
       });
+
+    });
   });
 });
 
