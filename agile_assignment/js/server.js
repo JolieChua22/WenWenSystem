@@ -196,6 +196,145 @@ app.get('/students', (req, res) => {
   });
 });
 
+
+// ================== New Routes for Assigning Students to Classes ==================
+
+// Route to fetch all classes
+app.get('/classes', (req, res) => {
+  console.log('Fetching classes...');
+  const query = 'SELECT ClassID, ClassName FROM classes';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching classes:', err.stack);
+      return res.status(500).json({ message: 'Database error' });
+    }
+    res.status(200).json(results); // Return class details
+  });
+});
+
+// Route to assign a student to a class
+app.post('/assign-student', (req, res) => {
+  const { studentId, classId, performanceGrade } = req.body;
+
+  // Validate inputs
+  if (!studentId || !classId) {
+    return res.status(400).json({ message: 'Student ID and Class ID are required.' });
+  }
+
+  // Optional: Validate performanceGrade if provided
+  const allowedGrades = ['A', 'B', 'C', 'D', 'F', '-'];
+  if (performanceGrade && !allowedGrades.includes(performanceGrade.toUpperCase())) {
+    return res.status(400).json({ message: 'Invalid Performance Grade.' });
+  }
+
+  // Check if the assignment already exists
+  const checkQuery = `
+    SELECT * FROM student_class_relationship
+    WHERE StudentID = ? AND ClassID = ?
+    LIMIT 1
+  `;
+  
+  db.query(checkQuery, [studentId, classId], (err, results) => {
+    if (err) {
+      console.error('Error checking existing assignment:', err);
+      return res.status(500).json({ message: 'Database error' });
+    }
+
+    if (results.length > 0) {
+      // Assignment already exists
+      return res.status(409).json({ message: 'Student is already assigned to this class.' });
+    }
+
+    // Insert the assignment since it doesn't exist
+    const insertQuery = `
+      INSERT INTO student_class_relationship (StudentID, ClassID, EnrollmentDate, PerformanceGrade)
+      VALUES (?, ?, CURDATE(), ?)
+    `;
+    
+    db.query(insertQuery, [studentId, classId, performanceGrade || null], (err, results) => {
+      if (err) {
+        console.error('Error assigning student to class:', err);
+        return res.status(500).json({ message: 'Database error' });
+      }
+
+      res.status(200).json({ message: 'Student assigned to class successfully!' });
+    });
+  });
+});
+// Route to fetch all class assignments
+app.get('/student-classes', (req, res) => {
+  console.log('Fetching student-class assignments...');
+  const query = `
+    SELECT sc.StudentID, s.FirstName, s.LastName, sc.ClassID, c.ClassName, sc.EnrollmentDate
+    FROM student_classes sc
+    JOIN Students s ON sc.StudentID = s.StudentID
+    JOIN classes c ON sc.ClassID = c.ClassID
+  `;
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching student-class assignments:', err.stack);
+      return res.status(500).json({ message: 'Database error' });
+    }
+    res.status(200).json(results); // Return assignments
+  });
+});
+
+// Route to fetch classes by subject ID
+app.get('/classes-by-subject', (req, res) => {
+  const subjectId = req.query.subjectId;
+  
+  if (!subjectId) {
+    return res.status(400).json({ message: 'Subject ID is required.' });
+  }
+
+  const query = 'SELECT ClassID, ClassName FROM classes WHERE Subject = ?';
+  db.query(query, [subjectId], (err, results) => {
+    if (err) {
+      console.error('Error fetching classes by subject:', err.stack);
+      return res.status(500).json({ message: 'Database error' });
+    }
+    res.status(200).json(results);
+  });
+});
+
+// Route to fetch class details by ClassID, including Teacher's name
+app.get('/class-details', (req, res) => {
+  const classId = req.query.classId;
+
+  if (!classId) {
+    return res.status(400).json({ message: 'Class ID is required.' });
+  }
+
+  const query = `
+    SELECT 
+      c.ClassID, 
+      c.ClassName, 
+      s.SubjectName, 
+      CONCAT(t.FirstName, ' ', t.LastName) AS TeacherName,
+      c.Day, 
+      c.StartTime, 
+      c.EndTime, 
+      c.RoomNumber
+    FROM classes c
+    JOIN subjects s ON c.Subject = s.SubjectID
+    JOIN teachers t ON c.TeacherID = t.TeacherID
+    WHERE c.ClassID = ?
+  `;
+
+  db.query(query, [classId], (err, results) => {
+    if (err) {
+      console.error('Error fetching class details:', err.stack);
+      return res.status(500).json({ message: 'Database error' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Class not found.' });
+    }
+
+    res.status(200).json(results[0]);
+  });
+});
+
 //ks
 // Route to handle subject creation
 app.post('/createSubject', (req, res) => {
