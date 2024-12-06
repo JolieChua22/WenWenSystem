@@ -48,8 +48,6 @@ app.use(bodyParser.json());
 app.use(express.static(__dirname));
 
 //wyman
-<<<<<<< Updated upstream
-=======
 // Login Route
 app.post('/login', (req, res) => {
   const { teacherID, password } = req.body;
@@ -81,7 +79,6 @@ app.post('/login', (req, res) => {
 });
 
 
->>>>>>> Stashed changes
 app.post("/submit", async (req, res) => {
   try {
     const { firstName, lastName, dob, enrollmentDate, contact } = req.body;
@@ -344,8 +341,6 @@ app.post('/create-class', (req, res) => {
   });
 });
 
-<<<<<<< Updated upstream
-=======
 app.get('/dashboard-classes', (req, res) => {
   const { tutorID } = req.query;
 
@@ -374,7 +369,6 @@ app.get('/dashboard-classes', (req, res) => {
 });
 
 
->>>>>>> Stashed changes
 app.post('/cancel-class', (req, res) => {
   const { classID } = req.body;
 
@@ -382,13 +376,8 @@ app.post('/cancel-class', (req, res) => {
     return res.status(400).json({ success: false, message: 'Class ID is required.' });
   }
 
-<<<<<<< Updated upstream
-  const deleteClassQuery = 'DELETE FROM classes WHERE ClassID = ?';
-  db.query(deleteClassQuery, [classID], (err, results) => {
-=======
   const deleteQuery = 'DELETE FROM classes WHERE ClassID = ?';
   db.query(deleteQuery, [classID], (err, results) => {
->>>>>>> Stashed changes
     if (err) {
       console.error('Error canceling class:', err.stack);
       return res.status(500).json({ success: false, message: 'Failed to cancel the class.' });
@@ -398,12 +387,9 @@ app.post('/cancel-class', (req, res) => {
       return res.status(404).json({ success: false, message: 'Class not found.' });
     }
 
-<<<<<<< Updated upstream
     // Notify students logic (optional placeholder)
     console.log(`Students enrolled in ClassID ${classID} have been notified.`);
 
-=======
->>>>>>> Stashed changes
     res.status(200).json({ success: true, message: 'Class canceled successfully.' });
   });
 });
