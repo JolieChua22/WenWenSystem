@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Wen Wen Tuition Student Management</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .search-container {
+      margin-bottom: 20px;
+    }
+    .search-container input {
+      width: 300px;
+      padding: 8px;
+      font-size: 16px;
+    }
+    .search-container button {
+      padding: 8px 16px;
+      font-size: 16px;
+      margin-left: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 8px;
+      text-align: center;
+      cursor: pointer; /* Indicate that headers are clickable */
+    }
+    th {
+      background-color: #f2f2f2;
+      position: relative; /* For positioning sort indicators */
+    }
+    th .sort-indicator {
+      margin-left: 5px;
+      font-size: 12px;
+    }
+     /* Modal Styles */
+     .modal {
+      display: none; /* Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 1; /* Sit on top */
+      padding-top: 100px; /* Location of the box */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgb(0,0,0); /* Fallback color */
+      background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+
+    /* Modal Content */
+    .modal-content {
+      background-color: #fefefe;
+      margin: auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 40%;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      border-radius: 8px;
+    }
+
+    /* Close Button */
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    /* Assign Class Button Styles */
+    td:last-child button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    td:last-child button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>Wenwen Tution Centre Management System  </h1>
+  <h2>Student Management </h2>
+  
+  <div class="search-container">
+    <input type="text" id="searchInput" placeholder="Search by any field">
+    <button id="searchButton">Search</button>
+    <button id="resetButton">Reset</button>
+  </div>
+
+  <table id="studentTable">
+    <thead>
+      <tr>
+        <th data-field="StudentID">ID <span class="sort-indicator"></span></th>
+        <th data-field="FirstName">First Name <span class="sort-indicator"></span></th>
+        <th data-field="LastName">Last Name <span class="sort-indicator"></span></th>
+        <th data-field="DateOfBirth">Date of Birth <span class="sort-indicator"></span></th>
+        <th data-field="Gender">Gender <span class="sort-indicator"></span></th>
+        <th data-field="ContactNumber">Contact Number <span class="sort-indicator"></span></th>
+        <th data-field="Email">Email <span class="sort-indicator"></span></th>
+        <th data-field="Address">Address <span class="sort-indicator"></span></th>
+        <th data-field="EnrollmentDate">Enrollment Date <span class="sort-indicator"></span></th>
+        <th data-field="EmergencyContact">Emergency Contact <span class="sort-indicator"></span></th>
+        <th>Assign Class</th> 
+
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Rows will be added here dynamically -->
+    </tbody>
+  </table>
+
+  
+  <!-- Modal for Assigning Class -->
+ <!-- Modal for Assigning Class -->
+<div id="assignModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h3>Assign Class to Student</h3>
+    <p id="modalStudentName"></p>
+    
+    <!-- Add Subject Dropdown -->
+    <select id="subjectSelect">
+      <option value="">Select a subject</option>
+      <!-- Subject options will be populated dynamically -->
+    </select>
+    <br><br>
+    
+    <select id="classSelect">
+      <option value="">Select a class</option>
+      <!-- Class options will be populated dynamically -->
+    </select>
+    <br><br>
+    <!-- Container to display selected class details -->
+<div id="classDetails" style="margin-top: 20px; border: 1px solid #ccc; padding: 10px;">
+  <h3>Class Details</h3>
+  <p><strong>Class Name:</strong> <span id="detailClassName">Select a class to view details</span></p>
+  <p><strong>Subject:</strong> <span id="detailSubject">Select a class to view details</span></p>
+  <p><strong>Teacher:</strong> <span id="detailTeacher">Select a class to view details</span></p>
+  <p><strong>Day:</strong> <span id="detailDay">Select a class to view details</span></p>
+  <p><strong>Start Time:</strong> <span id="detailStartTime">Select a class to view details</span></p>
+  <p><strong>End Time:</strong> <span id="detailEndTime">Select a class to view details</span></p>
+  <p><strong>Room Number:</strong> <span id="detailRoomNumber">Select a class to view details</span></p>
+</div>
+    <!-- Performance Grade Dropdown -->
+    <label for="performanceGrade">Performance Grade:</label>
+    <select id="performanceGrade">
+      <option value="">Select a grade</option>
+      <option value="A">A</option>
+      <option value="B">B</option>
+      <option value="C">C</option>
+      <option value="D">D</option>
+      <option value="F">F</option>
+      <option value="-">-</option>
+    </select>
+    <br><br>
+    
+   
+    
+    <button id="assignButton">Assign</button>
+  </div>
+</div>
+  <script>
+    // Initialize sort state
+    const sortState = {
+      field: null,
+      order: 'asc' // 'asc' or 'desc'
+    };
+
+    // Function to clear sort indicators
+    function clearSortIndicators() {
+      const indicators = document.querySelectorAll('.sort-indicator');
+      indicators.forEach(indicator => {
+        indicator.textContent = '';
+      });
+    }
+
+    // Function to update sort indicators
+    function updateSortIndicators(field, order) {
+      clearSortIndicators();
+      const header = document.querySelector(`th[data-field="${field}"] .sort-indicator`);
+      if (header) {
+        header.textContent = order === 'asc' ? '▲' : '▼';
+      }
+    }
+
+    // Function to fetch and display students
+    function fetchAndDisplayStudents(query = "", sortField = null, sortOrder = 'asc') {
+      console.log("Search query:", query);
+      console.log("Sort Field:", sortField, "Sort Order:", sortOrder);
+
+      let url = "http://localhost:3000/students";
+      const params = new URLSearchParams();
+
+      if (query) {
+        params.append("query", query);
+      }
+
+      if (sortField) {
+        params.append("sortField", sortField);
+        params.append("sortOrder", sortOrder);
+      }
+
+      if ([...params].length > 0) {
+        url += `?${params.toString()}`;
+      }
+
+      fetch(url)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          const tableBody = document.getElementById("studentTable").querySelector("tbody");
+          tableBody.innerHTML = ""; // Clear existing rows
+
+          if (data.length === 0) {
+            const noDataRow = document.createElement("tr");
+            noDataRow.innerHTML = `<td colspan="10">No matching records found.</td>`;
+            tableBody.appendChild(noDataRow);
+            return;
+          }
+
+          data.forEach(student => {
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+              <td>${student.StudentID}</td>
+              <td>${student.FirstName}</td>
+              <td>${student.LastName}</td>
+              <td>${new Date(student.DateOfBirth).toLocaleDateString()}</td>
+              <td>${student.Gender}</td>
+              <td>${student.ContactNumber}</td>
+              <td>${student.Email}</td>
+              <td>${student.Address}</td>
+              <td>${new Date(student.EnrollmentDate).toLocaleDateString()}</td>
+              <td>${student.EmergencyContact}</td>
+              <td>
+                <button 
+                  data-student-id="${student.StudentID}" 
+                  data-student-name="${student.FirstName} ${student.LastName}" 
+                  onclick="openAssignModal(event)">
+                  Assign Class
+                </button>
+              </td>
+            `;
+
+            tableBody.appendChild(row);
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching student data:', error);
+          const tableBody = document.getElementById("studentTable").querySelector("tbody");
+          tableBody.innerHTML = `<tr><td colspan="10">Failed to load student details.</td></tr>`;
+        });
+    }
+
+    // Modal Elements
+    const assignModal = document.getElementById("assignModal");
+    const closeModal = document.getElementsByClassName("close")[0];
+    const modalStudentName = document.getElementById("modalStudentName");
+    const classSelect = document.getElementById("classSelect");
+    const assignButton = document.getElementById("assignButton");
+
+    let currentStudentId = null;
+
+    // Function to open the Assign Modal
+    function openAssignModal(event) {
+      const studentId = event.target.getAttribute('data-student-id');
+      const studentName = event.target.getAttribute('data-student-name');
+
+      currentStudentId = studentId;
+      modalStudentName.textContent = "Assigning class to: " + studentName;
+
+      // Fetch available subjects correctly
+      fetch('http://localhost:3000/subjects')
+        .then(response => response.json())
+        .then(subjects => {
+          const subjectSelect = document.getElementById('subjectSelect');
+          subjectSelect.innerHTML = '<option value="">Select a subject</option>';
+          subjects.forEach(subject => {
+            const option = document.createElement('option');
+            option.value = subject.SubjectID;
+            option.textContent = subject.SubjectName;
+            subjectSelect.appendChild(option);
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching subjects:', error);
+          const subjectSelect = document.getElementById('subjectSelect');
+          subjectSelect.innerHTML = '<option value="">Failed to load subjects</option>';
+        });
+
+      // Clear class select options
+      const classSelect = document.getElementById('classSelect');
+      classSelect.innerHTML = '<option value="">Select a class</option>';
+
+
+      assignModal.style.display = "block";
+    }
+
+    function fetchClassDetails(classId) {
+    fetch(`http://localhost:3000/class-details?classId=${encodeURIComponent(classId)}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          alert(data.message);
+          clearClassDetails();
+          return;
+        }
+
+        // Populate the class details
+        document.getElementById('detailClassName').textContent = data.ClassName || 'N/A';
+        document.getElementById('detailSubject').textContent = data.SubjectName || 'N/A';
+        document.getElementById('detailTeacher').textContent = data.TeacherName || 'N/A';
+        document.getElementById('detailDay').textContent = data.Day || 'N/A';
+        document.getElementById('detailStartTime').textContent = data.StartTime || 'N/A';
+        document.getElementById('detailEndTime').textContent = data.EndTime || 'N/A';
+        document.getElementById('detailRoomNumber').textContent = data.RoomNumber || 'N/A';
+      })
+      .catch(error => {
+        console.error('Error fetching class details:', error);
+        alert('Failed to fetch class details.');
+        clearClassDetails();
+      });
+  }
+
+   
+   function clearClassDetails() {
+    document.getElementById('detailClassName').textContent = 'N/A';
+    document.getElementById('detailSubject').textContent = 'N/A';
+    document.getElementById('detailTeacher').textContent = 'N/A';
+    document.getElementById('detailDay').textContent = 'N/A';
+    document.getElementById('detailStartTime').textContent = 'N/A';
+    document.getElementById('detailEndTime').textContent = 'N/A';
+    document.getElementById('detailRoomNumber').textContent = 'N/A';
+  }
+
+  // Add event listener to classSelect dropdown
+  document.getElementById('classSelect').addEventListener('change', function() {
+    const selectedClassId = this.value;
+    if (selectedClassId) {
+      fetchClassDetails(selectedClassId);
+    } else {
+      clearClassDetails();
+    }
+  });
+
+   // Add event listener for subject selection
+    document.getElementById('subjectSelect').addEventListener('change', function() {
+      const subjectId = this.value;
+
+      const classSelect = document.getElementById('classSelect');
+      classSelect.innerHTML = '<option value="">Select a class</option>';
+
+      if (subjectId) {
+        // Fetch classes based on selected subject
+     <!-- Update the fetch URL for classes by subject -->
+fetch(`http://localhost:3000/classes-by-subject?subjectId=${subjectId}`)
+  .then(response => response.json())
+  .then(classes => {
+    classes.forEach(cls => {
+      const option = document.createElement('option');
+      option.value = cls.ClassID;
+      option.textContent = cls.ClassName;
+      classSelect.appendChild(option);
+    });
+  })
+  .catch(error => {
+    console.error('Error fetching classes:', error);
+    classSelect.innerHTML = '<option value="">Failed to load classes</option>';
+  });
+      }
+    });
+
+    // Close the modal when the user clicks on <span> (x)
+    closeModal.onclick = function() {
+      assignModal.style.display = "none";
+    }
+
+    // Close the modal when the user clicks anywhere outside of the modal
+    window.onclick = function(event) {
+      if (event.target == assignModal) {
+        assignModal.style.display = "none";
+      }
+    }
+
+
+  // Handle Assign Button Click
+  assignButton.addEventListener("click", () => {
+    const selectedClassId = classSelect.value;
+    const selectedPerformanceGrade = document.getElementById('performanceGrade').value;
+
+    if (!selectedClassId) {
+      alert('Please select a class to assign.');
+      return;
+    }
+
+    if (!currentStudentId) {
+      alert('No student selected.');
+      return;
+    }
+
+    // Optional: Validate performance grade selection
+    if (!selectedPerformanceGrade) {
+      alert('Please select a performance grade.');
+      return;
+    }
+      // Confirmation Prompt
+      const confirmation = confirm("Are you sure you want to assign the selected student to this class?");
+    if (!confirmation) {
+      // If the admin cancels, do not proceed with the assignment
+      return;
+    }
+
+
+    // Send assignment to the server
+    fetch('http://localhost:3000/assign-student', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        studentId: currentStudentId,
+        classId: selectedClassId,
+        performanceGrade: selectedPerformanceGrade
+      })
+    })
+      .then(response => response.json().then(data => ({ status: response.status, body: data })))
+      .then(({ status, body }) => {
+        if (status === 200) {
+          alert(body.message);
+          assignModal.style.display = "none";
+        } else {
+          alert(body.message || 'Failed to assign class.');
+        }
+      })
+      .catch(error => {
+        console.error('Error assigning class:', error);
+        alert('An error occurred while assigning the class.');
+      });
+  });
+    // Initialize table with all students on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchAndDisplayStudents();
+    });
+
+    // Handle Search Button Click
+    document.getElementById("searchButton").addEventListener("click", () => {
+      const query = document.getElementById("searchInput").value.trim();
+      const { field, order } = sortState;
+
+      if (query) {
+        fetchAndDisplayStudents(query, field, order);
+      } else {
+        alert('Please enter a search term.');
+      }
+    });
+
+    // Handle Reset Button Click
+    document.getElementById("resetButton").addEventListener("click", () => {
+      document.getElementById("searchInput").value = "";
+      
+      // Reset sort state
+      sortState.field = null;
+      sortState.order = 'asc';
+      clearSortIndicators();
+
+      fetchAndDisplayStudents();
+    });
+
+    // Add click event listeners to table headers for sorting
+    const headers = document.querySelectorAll("th[data-field]");
+    headers.forEach(header => {
+      header.addEventListener("click", () => {
+        const field = header.getAttribute("data-field");
+        let order = 'asc';
+
+        if (sortState.field === field) {
+          // Toggle sort order if the same header is clicked
+          order = sortState.order === 'asc' ? 'desc' : 'asc';
+        }
+
+        // Update sort state
+        sortState.field = field;
+        sortState.order = order;
+
+        // Update sort indicators
+        updateSortIndicators(field, order);
+
+        const query = document.getElementById("searchInput").value.trim();
+        fetchAndDisplayStudents(query, field, order);
+      });
+      
+    });
+        // Enable "Enter" Key to Trigger Search**
+        document.getElementById("searchInput").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault(); // Prevent form submission or other default actions
+        document.getElementById("searchButton").click(); // Trigger the search button click
+      }
+    });
+  </script>
+  <!-- <script src="js/script.js"></script> -->
+</body>
+</html>
