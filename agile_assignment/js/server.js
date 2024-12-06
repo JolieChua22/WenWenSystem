@@ -48,6 +48,37 @@ app.use(bodyParser.json());
 app.use(express.static(__dirname));
 
 //wyman
+// Login Route
+app.post('/login', (req, res) => {
+  const { teacherID, password } = req.body;
+
+  const query = 'SELECT * FROM Teachers WHERE TeacherID = ?';
+  db.query(query, [teacherID], (err, results) => {
+      if (err) {
+          console.error('Error fetching teacher:', err.stack);
+          return res.status(500).json({ message: 'Internal server error.' });
+      }
+
+      if (results.length === 0) {
+          return res.status(401).json({ message: 'Invalid TeacherID or no matching record found in the database.' });
+      }
+
+      const teacher = results[0];
+      // Assuming plaintext password for simplicity; replace with bcrypt if hashing is used
+      if (password === teacher.Password) {
+          res.status(200).json({
+              message: 'Login successful!',
+              teacherID: teacher.TeacherID,
+              firstName: teacher.FirstName,
+              lastName: teacher.LastName
+          });
+      } else {
+          res.status(401).json({ message: 'Your password is invalid. Please try again.' });
+      }
+  });
+});
+
+
 app.post("/submit", async (req, res) => {
   try {
     const { firstName, lastName, dob, enrollmentDate, contact } = req.body;
