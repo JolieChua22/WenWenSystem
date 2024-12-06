@@ -4,11 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< Updated upstream
     <title>Cancel Class</title>
+=======
+    <title>Cancel Classes</title>
+>>>>>>> Stashed changes
     <link rel="stylesheet" href="cancelClass.css">
 </head>
 
 <body>
+<<<<<<< Updated upstream
     <div class="form-container">
         <h1>Cancel Scheduled Class</h1>
         <p id="responseMessage" style="margin-top: 15px;"></p>
@@ -71,6 +76,96 @@
                     messageElement.style.color = 'red';
                 });
         });
+=======
+    <div id="notLoggedIn" style="display: none;">
+        <h2>You are not logged in.</h2>
+        <button onclick="redirectToLogin()">Login as Tutor</button>
+    </div>
+
+    <div id="cancelClassContainer" style="display: none;">
+        <h1>Cancel Scheduled Classes</h1>
+        <h3>Welcome, <span id="tutorName"></span></h3>
+        <p id="responseMessage" style="margin-top: 15px;"></p>
+        <ul id="classList">
+            <!-- Scheduled classes will be populated here dynamically -->
+        </ul>
+    </div>
+
+    <script>
+        // Check if the tutor is logged in by verifying sessionStorage
+            const tutorID = sessionStorage.getItem('teacherID');
+            const firstName = sessionStorage.getItem('firstName');
+            const lastName = sessionStorage.getItem('lastName');
+
+            if (!tutorID) {
+                // If tutor is not logged in, show login button
+                document.getElementById('notLoggedIn').style.display = 'block';
+            } else {
+                // If tutor is logged in, fetch and display their classes
+                document.getElementById('cancelClassContainer').style.display = 'block';
+                document.getElementById('tutorName').textContent = `${firstName} ${lastName}`;
+
+                fetch(`http://localhost:3000/dashboard-classes?tutorID=${tutorID}`)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        const classList = document.getElementById('classList');
+                        if (data.length === 0) {
+                            const noClassesMessage = document.createElement('p');
+                            noClassesMessage.textContent = 'No classes scheduled under your account.';
+                            classList.appendChild(noClassesMessage);
+                        } else {
+                            data.forEach((cls) => {
+                                const listItem = document.createElement('li');
+                                listItem.textContent = `${cls.ClassName} - ${cls.Subject} (${cls.Day} ${cls.StartTime} - ${cls.EndTime})`;
+
+                                const cancelButton = document.createElement('button');
+                                cancelButton.textContent = 'Cancel Class';
+                                cancelButton.classList.add('cancel-btn');
+                                cancelButton.addEventListener('click', () => {
+                                    const confirmCancel = confirm(`Are you sure you want to cancel the class "${cls.ClassName}"?`);
+                                    if (confirmCancel) {
+                                        fetch('http://localhost:3000/cancel-class', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ classID: cls.ClassID }),
+                                        })
+                                            .then((response) => response.json())
+                                            .then((cancelData) => {
+                                                if (cancelData.success) {
+                                                    alert('Class canceled successfully!');
+                                                    listItem.remove();
+
+                                                    // Check if there are no more classes in the list
+                                                    if (classList.children.length === 0) {
+                                                        const noClassesMessage = document.createElement('p');
+                                                        noClassesMessage.textContent = 'No classes scheduled under your account.';
+                                                        classList.appendChild(noClassesMessage);
+                                                    }
+                                                } else {
+                                                    alert(cancelData.message);
+                                                }
+                                            })
+                                            .catch((error) => {
+                                                console.error('Error canceling class:', error);
+                                                alert('An error occurred. Please try again.');
+                                            });
+                                    }
+                                });
+
+                                listItem.appendChild(cancelButton);
+                                classList.appendChild(listItem);
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Error fetching classes:', error);
+                        document.getElementById('responseMessage').textContent = 'Failed to fetch classes. Please try again.';
+                        document.getElementById('responseMessage').style.color = 'red';
+                    });
+            }
+
+
+>>>>>>> Stashed changes
     </script>
 </body>
 
