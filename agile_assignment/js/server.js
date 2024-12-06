@@ -390,12 +390,4 @@ app.post('/cancel-class', (req, res) => {
     // Notify students logic (optional placeholder)
     console.log(`Students enrolled in ClassID ${classID} have been notified.`);
 
-    res.status(200).json({ success: true, message: 'Class canceled successfully.' });
-  });
-});
-
-
-// Start the server
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
+    res.status(200).json({ success: true, message: 'Class canceled success
