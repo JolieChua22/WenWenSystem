@@ -336,6 +336,7 @@ app.get('/class-details', (req, res) => {
 });
 
 //ks
+// Sprint 1
 // Route to handle subject creation
 app.post('/createSubject', (req, res) => {
   const { subjectName, description, level } = req.body;
@@ -379,6 +380,65 @@ app.get('/subjects', (req, res) => {
       return res.status(500).json({ error: 'Database query failed' });
     }
     res.json(results);
+  });
+});
+
+// Sprint 2
+// Route to assign tutor to a subject
+app.post('/assign-tutor', (req, res) => {
+  const { tutorID, subjectID } = req.body;
+
+  // Validate inputs
+  if (!tutorID || !subjectID) {
+      return res.status(400).json({ success: false, message: 'Tutor ID and Subject ID are required.' });
+  }
+
+  // Check if the tutor already teaches two subjects
+  const countQuery = `
+      SELECT COUNT(*) AS subjectCount 
+      FROM TeacherSubject 
+      WHERE TeacherID = ? AND Status = 'Active'
+  `;
+  db.query(countQuery, [tutorID], (err, results) => {
+      if (err) {
+          console.error('Error checking subject count:', err.stack);
+          return res.status(500).json({ success: false, message: 'Database error.' });
+      }
+
+      const { subjectCount } = results[0];
+      if (subjectCount >= 2) {
+          return res.status(409).json({ success: false, message: 'This tutor is already teaching two subjects.' });
+      }
+
+      // Check if the tutor is already assigned to the subject
+      const checkQuery = `
+          SELECT * FROM TeacherSubject 
+          WHERE TeacherID = ? AND SubjectID = ? AND Status = 'Active'
+      `;
+      db.query(checkQuery, [tutorID, subjectID], (err, results) => {
+          if (err) {
+              console.error('Error checking assignment:', err.stack);
+              return res.status(500).json({ success: false, message: 'Database error.' });
+          }
+
+          if (results.length > 0) {
+              return res.status(409).json({ success: false, message: 'This tutor is already assigned to the selected subject.' });
+          }
+
+          // Insert new assignment
+          const insertQuery = `
+              INSERT INTO TeacherSubject (TeacherID, SubjectID, Status)
+              VALUES (?, ?, 'Active')
+          `;
+          db.query(insertQuery, [tutorID, subjectID], (err) => {
+              if (err) {
+                  console.error('Error assigning tutor:', err.stack);
+                  return res.status(500).json({ success: false, message: 'Database error during assignment.' });
+              }
+
+              res.status(201).json({ success: true, message: 'Tutor successfully assigned to subject.' });
+          });
+      });
   });
 });
 
