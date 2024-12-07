@@ -590,7 +590,6 @@ app.get('/dashboard-classes', (req, res) => {
   });
 });
 
-
 app.post('/cancel-class', (req, res) => {
   const { classID } = req.body;
 
@@ -598,21 +597,31 @@ app.post('/cancel-class', (req, res) => {
     return res.status(400).json({ success: false, message: 'Class ID is required.' });
   }
 
-  const deleteQuery = 'DELETE FROM classes WHERE ClassID = ?';
-  db.query(deleteQuery, [classID], (err, results) => {
+  const checkRelationshipsQuery = 'SELECT COUNT(*) AS count FROM student_class_relationship WHERE ClassID = ?';
+  const deleteClassQuery = 'DELETE FROM classes WHERE ClassID = ?';
+
+  db.query(checkRelationshipsQuery, [classID], (err, results) => {
     if (err) {
-      console.error('Error canceling class:', err.stack);
-      return res.status(500).json({ success: false, message: 'Failed to cancel the class.' });
+      console.error('Error checking relationships:', err.stack);
+      return res.status(500).json({ success: false, message: 'Failed to check class dependencies.' });
     }
 
-    if (results.affectedRows === 0) {
-      return res.status(404).json({ success: false, message: 'Class not found.' });
+    if (results[0].count > 0) {
+      return res.status(400).json({ success: false, message: 'Class cannot be canceled because students are still enrolled.' });
     }
 
-    // Notify students logic (optional placeholder)
-    console.log(`Students enrolled in ClassID ${classID} have been notified.`);
+    db.query(deleteClassQuery, [classID], (err, results) => {
+      if (err) {
+        console.error('Error canceling class:', err.stack);
+        return res.status(500).json({ success: false, message: 'Failed to cancel the class.' });
+      }
 
-res.status(200).json({ success: true, message: 'Class canceled successfully.' });
+      if (results.affectedRows === 0) {
+        return res.status(404).json({ success: false, message: 'Class not found.' });
+      }
+
+      res.status(200).json({ success: true, message: 'Class canceled successfully.' });
+    });
   });
 });
 
