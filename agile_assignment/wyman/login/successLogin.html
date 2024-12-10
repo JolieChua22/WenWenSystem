@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* General styles */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f3f4f6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Container styles */
+.dashboard-container {
+    background-color: #ffffff;
+    padding: 30px 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    text-align: center;
+}
+
+/* Header */
+.dashboard-container h1 {
+    font-size: 28px;
+    color: #4CAF50;
+    margin-bottom: 10px;
+}
+
+.dashboard-container p {
+    font-size: 16px;
+    color: #555555;
+    margin-bottom: 20px;
+}
+
+/* Actions section */
+.actions {
+    text-align: left;
+    margin-top: 20px;
+}
+
+.actions h2 {
+    font-size: 20px;
+    color: #333333;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #4CAF50;
+    padding-bottom: 5px;
+    display: inline-block;
+}
+
+.actions ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.actions ul li {
+    margin: 10px 0;
+}
+
+.actions ul li a {
+    font-size: 16px;
+    color: #4CAF50;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease-in-out;
+}
+
+.actions ul li a:hover {
+    color: #388E3C;
+    text-decoration: underline;
+}
+
+/* Logout button */
+#logout-button {
+    display: inline-block;
+    font-size: 16px;
+    color: white;
+    background-color: #f44336;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+#logout-button:hover {
+    background-color: #d32f2f;
+}
+
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <h1>Welcome, Teacher!</h1>
+        <p id="welcome-message"></p>
+        <div class="actions">
+            <h2>Actions</h2>
+            <ul>
+                <li><a href="viewClasses.html">View Your Classes</a></li>
+                <li><a href="manageStudents.html">Manage Students</a></li>
+                <li><a href="resources.html">Access Resources</a></li>
+                <li><a href="../../xy/cancelClass.html">Cancel Class Scheduled</a></li>
+                <li><a href="#" id="logout-button">Logout</a></li>
+            </ul>
+        </div>
+    </div>
+    <script>
+        // Retrieve the teacher's first name and last name from sessionStorage
+        const firstName = sessionStorage.getItem('firstName');
+        const lastName = sessionStorage.getItem('lastName');
+        const welcomeMessage = firstName && lastName 
+            ? `Welcome, ${firstName} ${lastName}!` 
+            : 'Welcome, Tutor!';
+
+        document.getElementById('welcome-message').textContent = welcomeMessage;
+
+        // Logout functionality
+        document.getElementById('logout-button').addEventListener('click', () => {
+            sessionStorage.clear(); // Clear session storage on logout
+            window.location.href = 'login.html'; // Redirect to login page
+        });
+    </script>
+</body>
+</html>

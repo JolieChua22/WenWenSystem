@@ -48,6 +48,38 @@ app.use(bodyParser.json());
 app.use(express.static(__dirname));
 
 //wyman
+// Login Route
+app.post('/login', (req, res) => {
+  const { teacherID, password } = req.body;
+
+  const query = 'SELECT * FROM Teachers WHERE TeacherID = ?';
+  db.query(query, [teacherID], (err, results) => {
+
+      if (err) {
+          console.error('Error fetching teacher:', err.stack);
+          return res.status(500).json({ message: 'Internal server error.' });
+      }
+
+      if (results.length === 0) {
+          return res.status(401).json({ message: 'Invalid TeacherID or no matching record found in the database.' });
+      }
+
+      const teacher = results[0];
+      // Assuming plaintext password for simplicity; replace with bcrypt if hashing is used
+      if (password === teacher.Password) {
+          res.status(200).json({
+              message: 'Login successful!',
+              teacherID: teacher.TeacherID,
+              firstName: teacher.FirstName,
+              lastName: teacher.LastName
+          });
+      } else {
+          res.status(401).json({ message: 'Your password is invalid. Please try again.' });
+      }
+  });
+});
+
+
 app.post("/submit", async (req, res) => {
   try {
     const { firstName, lastName, dob, enrollmentDate, contact } = req.body;
@@ -164,6 +196,9 @@ app.get('/students', (req, res) => {
     res.json(results);
   });
 });
+
+
+//ks
 
 
 // ================== New Routes for Assigning Students to Classes ==================
@@ -305,6 +340,8 @@ app.get('/class-details', (req, res) => {
 });
 
 //ks
+// Sprint 1
+
 // Route to handle subject creation
 app.post('/createSubject', (req, res) => {
   const { subjectName, description, level } = req.body;
@@ -351,6 +388,75 @@ app.get('/subjects', (req, res) => {
   });
 });
 
+
+// Sprint 2
+// Route to assign tutor to a subject
+app.post('/assign-tutor', (req, res) => {
+  const { tutorID, subjectID } = req.body;
+
+  // Validate inputs
+  if (!tutorID || !subjectID) {
+    return res.status(400).json({ success: false, message: 'Tutor ID and Subject ID are required.' });
+  }
+
+  // Check if the tutor is already assigned to the selected subject
+  const checkAssignmentQuery = `
+    SELECT * FROM TeacherSubject 
+    WHERE TeacherID = ? AND SubjectID = ? AND Status = 'Active'
+  `;
+  db.query(checkAssignmentQuery, [tutorID, subjectID], (err, results) => {
+    if (err) {
+      console.error('Error checking assignment:', err.stack);
+      return res.status(500).json({ success: false, message: 'Database error.' });
+    }
+
+    if (results.length > 0) {
+      // If the teacher is already assigned to the subject, return an error message
+      return res.status(409).json({ success: false, message: 'This tutor is already assigned to the selected subject.' });
+    }
+
+    // Check if the tutor is already teaching two active subjects
+    const countQuery = `
+      SELECT COUNT(*) AS subjectCount 
+      FROM TeacherSubject 
+      WHERE TeacherID = ? AND Status = 'Active'
+    `;
+    db.query(countQuery, [tutorID], (err, results) => {
+      if (err) {
+        console.error('Error checking subject count:', err.stack);
+        return res.status(500).json({ success: false, message: 'Database error.' });
+      }
+
+      const { subjectCount } = results[0];
+      if (subjectCount >= 2) {
+        // If the tutor is teaching two active subjects, return an error message
+        return res.status(409).json({ success: false, message: 'This tutor is already teaching two subjects.' });
+      }
+
+      // Check if the record exists in the database
+      const checkAndUpsertQuery = `
+        INSERT INTO TeacherSubject (TeacherID, SubjectID, Status)
+        VALUES (?, ?, 'Active')
+        ON DUPLICATE KEY UPDATE
+        Status = 'Active'
+      `;
+      db.query(checkAndUpsertQuery, [tutorID, subjectID], (err, results) => {
+        if (err) {
+          console.error('Error during assignment:', err.stack);
+          return res.status(500).json({ success: false, message: 'Database error during assignment.' });
+        }
+
+        if (results.affectedRows === 1) {
+          res.status(201).json({ success: true, message: 'Tutor successfully assigned to subject.' });
+        } else {
+          res.status(200).json({ success: true, message: 'Tutor assignment reactivated successfully.' });
+        }
+      });
+
+    });
+  });
+});
+
 //xy
 // Route to fetch teachers for the dropdown in createClasses.html
 app.get('/get-teachers', (req, res) => {
@@ -384,7 +490,10 @@ app.post('/create-class', (req, res) => {
 
   // Validate required fields
   if (!className || !subject || !teacherId || !day || !startTime || !endTime || !roomNumber) {
+
+
       return res.status(400).json({ message: 'All fields are required.' });
+
   }
 
   // Validate time range
@@ -392,64 +501,133 @@ app.post('/create-class', (req, res) => {
   const workingHoursEnd = '22:00:00';
 
   if (startTime < workingHoursStart || endTime > workingHoursEnd) {
+
       return res.status(400).json({ message: 'Class time must be within working hours (10:00 AM to 10:00 PM).' });
   }
 
   if (startTime >= endTime) {
       return res.status(400).json({ message: 'End time must be later than start time.' });
+
   }
 
   // Check for class name duplication
   const checkClassQuery = 'SELECT ClassID FROM classes WHERE ClassName = ?';
   db.query(checkClassQuery, [className], (err, classResults) => {
-      if (err) {
-          console.error('Error checking class name:', err.stack);
-          return res.status(500).json({ message: 'Database error while checking class name.' });
-      }
 
-      if (classResults.length > 0) {
-          return res.status(409).json({ message: 'Class name already exists.' });
-      }
+    if (err) {
+      console.error('Error checking class name:', err.stack);
+      return res.status(500).json({ message: 'Database error while checking class name.' });
+    }
 
-      // Check for overlapping classes
-      const checkOverlapQuery = `
+    if (classResults.length > 0) {
+      return res.status(409).json({ message: 'Class name already exists.' });
+    }
+
+    // Check for overlapping classes
+    const checkOverlapQuery = `
+
           SELECT * FROM classes
           WHERE RoomNumber = ? AND Day = ? AND (
               (StartTime < ? AND EndTime > ?) OR 
               (StartTime < ? AND EndTime > ?)
           )
       `;
-      db.query(checkOverlapQuery, [roomNumber, day, endTime, startTime, startTime, endTime], (err, overlapResults) => {
-          if (err) {
-              console.error('Error checking room availability:', err.stack);
-              return res.status(500).json({ message: 'Database error while checking room availability.' });
-          }
 
-          if (overlapResults.length > 0) {
-              return res.status(409).json({ message: 'The room is already booked for the specified time and day.' });
-          }
+    db.query(checkOverlapQuery, [roomNumber, day, endTime, startTime, startTime, endTime], (err, overlapResults) => {
+      if (err) {
+        console.error('Error checking room availability:', err.stack);
+        return res.status(500).json({ message: 'Database error while checking room availability.' });
+      }
 
-          // Insert the new class
-          const insertQuery = `
+      if (overlapResults.length > 0) {
+        return res.status(409).json({ message: 'The room is already booked for the specified time and day.' });
+      }
+
+      // Insert the new class
+      const insertQuery = `
               INSERT INTO classes (ClassName, Subject, TeacherID, Day, StartTime, EndTime, RoomNumber)
               VALUES (?, ?, ?, ?, ?, ?, ?)
           `;
-          db.query(insertQuery, [className, subject, teacherId, day, startTime, endTime, roomNumber], (err, results) => {
-              if (err) {
-                  console.error('Error inserting class:', err.stack);
-                  return res.status(500).json({ message: 'Database error while creating class.' });
-              }
+      db.query(insertQuery, [className, subject, teacherId, day, startTime, endTime, roomNumber], (err, results) => {
+        if (err) {
+          console.error('Error inserting class:', err.stack);
+          return res.status(500).json({ message: 'Database error while creating class.' });
+        }
 
-              res.status(201).json({
-                  message: 'Class created successfully.',
-                  classId: results.insertId,
-              });
-          });
+        res.status(201).json({
+          message: 'Class created successfully.',
+          classId: results.insertId,
+        });
       });
+    });
   });
 });
+
+app.get('/dashboard-classes', (req, res) => {
+  const { tutorID } = req.query;
+
+  console.log(`Received request to fetch classes for TutorID: ${tutorID}`);
+
+  if (!tutorID) {
+    return res.status(400).json({ message: 'Tutor ID is required to fetch classes.' });
+  }
+
+  const query = `
+    SELECT ClassID, ClassName, Subject, Day, StartTime, EndTime, RoomNumber
+    FROM classes
+    WHERE TeacherID = ?
+  `;
+
+  db.query(query, [tutorID], (err, results) => {
+    if (err) {
+      console.error('Error fetching classes:', err.stack);
+      return res.status(500).json({ message: 'Internal server error.' });
+    }
+
+    console.log(`Classes fetched for TutorID ${tutorID}:`, results);
+
+    res.status(200).json(results);
+  });
+});
+
+app.post('/cancel-class', (req, res) => {
+  const { classID } = req.body;
+
+  if (!classID) {
+    return res.status(400).json({ success: false, message: 'Class ID is required.' });
+  }
+
+  const checkRelationshipsQuery = 'SELECT COUNT(*) AS count FROM student_class_relationship WHERE ClassID = ?';
+  const deleteClassQuery = 'DELETE FROM classes WHERE ClassID = ?';
+
+  db.query(checkRelationshipsQuery, [classID], (err, results) => {
+    if (err) {
+      console.error('Error checking relationships:', err.stack);
+      return res.status(500).json({ success: false, message: 'Failed to check class dependencies.' });
+    }
+
+    if (results[0].count > 0) {
+      return res.status(400).json({ success: false, message: 'Class cannot be canceled because students are still enrolled.' });
+    }
+
+    db.query(deleteClassQuery, [classID], (err, results) => {
+      if (err) {
+        console.error('Error canceling class:', err.stack);
+        return res.status(500).json({ success: false, message: 'Failed to cancel the class.' });
+      }
+
+      if (results.affectedRows === 0) {
+        return res.status(404).json({ success: false, message: 'Class not found.' });
+      }
+
+      res.status(200).json({ success: true, message: 'Class canceled successfully.' });
+    });
+  });
+});
+
 
 // Start the server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
+
