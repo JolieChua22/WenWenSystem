@@ -198,7 +198,7 @@ app.get('/students', (req, res) => {
 });
 
 
-//ks
+//sprint2
 
 
 // ================== New Routes for Assigning Students to Classes ==================
@@ -337,6 +337,84 @@ app.get('/class-details', (req, res) => {
 
     res.status(200).json(results[0]);
   });
+});
+//sprint3
+
+// Route to update student details
+app.put('/update-student', (req, res) => {
+  const {
+    StudentID,
+    FirstName,
+    LastName,
+    DateOfBirth,
+    Gender,
+    ContactNumber,
+    Email,
+    Address,
+    EnrollmentDate,
+    EmergencyContact
+  } = req.body;
+
+  // Validate required fields
+  if (
+    !StudentID ||
+    !FirstName ||
+    !LastName ||
+    !DateOfBirth ||
+    !Gender ||
+    !ContactNumber ||
+    !Email ||
+    !Address ||
+    !EnrollmentDate ||
+    !EmergencyContact
+  ) {
+    return res.status(400).json({ message: 'All fields are required.' });
+  }
+
+  // Additional validations (e.g., email format, contact number)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(Email)) {
+    return res.status(400).json({ message: 'Invalid email format.' });
+  }
+
+  if (!/^\d+$/.test(ContactNumber)) {
+    return res.status(400).json({ message: 'Contact number must contain only digits.' });
+  }
+
+  // Update query using parameterized inputs
+  const updateQuery = `
+    UPDATE Students
+    SET FirstName = ?, LastName = ?, DateOfBirth = ?, Gender = ?, ContactNumber = ?, Email = ?, Address = ?, EnrollmentDate = ?, EmergencyContact = ?
+    WHERE StudentID = ?
+  `;
+
+  db.query(
+    updateQuery,
+    [
+      FirstName,
+      LastName,
+      DateOfBirth,
+      Gender,
+      ContactNumber,
+      Email,
+      Address,
+      EnrollmentDate,
+      EmergencyContact,
+      StudentID
+    ],
+    (err, results) => {
+      if (err) {
+        console.error('Error updating student:', err.stack);
+        return res.status(500).json({ message: 'Database error.' });
+      }
+
+      if (results.affectedRows === 0) {
+        return res.status(404).json({ message: 'Student not found.' });
+      }
+
+      res.status(200).json({ message: 'Student details updated successfully!' });
+    }
+  );
 });
 
 //ks
