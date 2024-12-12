@@ -4,73 +4,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cancel Class</title>
-    <link rel="stylesheet" href="cancelClass.css">
+    <title>View Registered Students</title>
+    <link rel="stylesheet" href="viewStudents.css">
 </head>
 
 <body>
-    <div class="form-container">
-        <h1>Cancel Scheduled Class</h1>
-        <p id="responseMessage" style="margin-top: 15px;"></p>
+    <div id="notLoggedIn" class="hidden">
+        <h2>You are not logged in.</h2>
+        <button onclick="redirectToLogin()">Login as Tutor</button>
+    </div>
 
-        <form id="cancelClassForm">
-            <div class="form-group">
-                <label for="classSelect">Scheduled Classes:</label>
-                <select id="classSelect" name="classSelect" required>
-                    <option value="">Select a class to cancel</option>
-                    <!-- Options will be populated dynamically -->
-                </select>
-            </div>
-            <button type="submit" class="btn">Cancel Class</button>
-        </form>
+    <div id="dashboard" class="hidden">
+        <h1>Welcome, <span id="tutorName"></span></h1>
+        <h2>Your Classes</h2>
+        <select id="classList" onchange="loadStudentDetails()">
+            <option value="">Select a class</option>
+            <!-- Classes will be dynamically populated -->
+        </select>
+        <p id="responseMessage" class="hidden"></p>
+
+        <div id="studentDetails" class="hidden">
+            <h3>Registered Students</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Email</th>
+                        <th>Contact Number</th>
+                        <th>Enrollment Date</th>
+                    </tr>
+                </thead>
+                <tbody id="studentTableBody">
+                    <!-- Student details will be dynamically populated -->
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
-        // Populate scheduled classes dynamically
-        document.addEventListener('DOMContentLoaded', () => {
-            fetch('http://localhost:3000/get-classes')
+        // Check if the tutor is logged in by verifying sessionStorage
+        const tutorID = sessionStorage.getItem('teacherID');
+        const firstName = sessionStorage.getItem('firstName');
+        const lastName = sessionStorage.getItem('lastName');
+
+        function redirectToLogin() {
+            window.location.href = 'login.html'; // Redirect to login page
+        }
+
+        if (!tutorID) {
+            // Show login prompt if not logged in
+            document.getElementById('notLoggedIn').classList.remove('hidden');
+        } else {
+            // Populate dashboard if logged in
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('tutorName').textContent = `${firstName} ${lastName}`;
+
+            // Fetch classes for the logged-in tutor
+            fetch(`http://localhost:3000/tutor-classes?tutorID=${tutorID}`)
                 .then((response) => response.json())
-                .then((data) => {
-                    const classDropdown = document.getElementById('classSelect');
-                    data.forEach((scheduledClass) => {
-                        const option = document.createElement('option');
-                        option.value = scheduledClass.ClassID;
-                        option.textContent = `${scheduledClass.ClassName} - ${scheduledClass.Subject} (${scheduledClass.Day} ${scheduledClass.StartTime} - ${scheduledClass.EndTime})`;
-                        classDropdown.appendChild(option);
-                    });
-                })
-                .catch((error) => console.error('Error fetching classes:', error));
-        });
-
-        // Handle form submission to cancel a class
-        document.getElementById('cancelClassForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-
-            const classID = document.getElementById('classSelect').value;
-
-            // Send cancel request to the server
-            fetch('http://localhost:3000/cancel-class', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ classID }),
-            })
-                .then((response) => response.json())
-                .then((data) => {
-                    const messageElement = document.getElementById('responseMessage');
-                    if (data.message) {
-                        messageElement.textContent = data.message;
-                        messageElement.style.color = data.success ? 'green' : 'red';
+                .then((classes) => {
+                    const classList = document.getElementById('classList');
+                    if (classes.length === 0) {
+                        const message = document.createElement('p');
+                        message.textContent = 'No classes found.';
+                        classList.parentElement.appendChild(message);
+                    } else {
+                        classes.forEach((cls) => {
+                            const option = document.createElement('option');
+                            option.value = cls.ClassID;
+                            option.textContent = cls.ClassName;
+                            classList.appendChild(option);
+                        });
                     }
                 })
-                .catch((error) => {
-                    console.error('Error:', error);
-                    const messageElement = document.getElementById('responseMessage');
-                    messageElement.textContent = 'Failed to cancel the class.';
-                    messageElement.style.color = 'red';
-                });
-        });
+                .catch((error) => console.error('Error fetching classes:', error));
+        }
+
+        function loadStudentDetails() {
+            const classID = document.getElementById('classList').value;
+            if (!classID) return;
+
+            fetch(`http://localhost:3000/class-students?classID=${classID}`)
+                .then((response) => response.json())
+                .then((students) => {
+                    const studentTableBody = document.getElementById('studentTableBody');
+                    studentTableBody.innerHTML = '';
+
+                    if (students.length === 0) {
+                        document.getElementById('responseMessage').textContent = 'No students registered for this class.';
+                        document.getElementById('responseMessage').classList.remove('hidden');
+                        document.getElementById('studentDetails').classList.add('hidden');
+                    } else {
+                        document.getElementById('responseMessage').classList.add('hidden');
+                        document.getElementById('studentDetails').classList.remove('hidden');
+
+                        students.forEach((student) => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${student.StudentID}</td>
+                                <td>${student.FirstName}</td>
+                                <td>${student.LastName}</td>
+                                <td>${student.Email}</td>
+                                <td>${student.ContactNumber}</td>
+                                <td>${student.EnrollmentDate}</td>
+                            `;
+                            studentTableBody.appendChild(row);
+                        });
+                    }
+                })
+                .catch((error) => console.error('Error fetching student details:', error));
+        }
     </script>
 </body>
 
