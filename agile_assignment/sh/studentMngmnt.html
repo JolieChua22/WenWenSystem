@@ -269,7 +269,7 @@
         <br><br>
 
         <label for="editEmergencyContact">Emergency Contact:</label>
-        <input type="text" id="editEmergencyContact" name="EmergencyContact" required pattern="^(?:\D*\d){10,11}$" title="Enter a 10-11-digit contact number with optional characters">
+        <input type="text" id="editEmergencyContact" name="EmergencyContact" required pattern="^(?:\D*\d){10,11}$" title="Enter a 10-11-digit contact number">
         <br><br>
 
         <button type="submit">Save Changes</button>
@@ -695,6 +695,12 @@
         EmergencyContact: document.getElementById('editEmergencyContact').value.trim()
       };
 
+      // Add confirmation prompt before saving edits
+      const confirmation = confirm("Are you sure you want to save these changes?");
+      if (!confirmation) {
+        return;
+      }
+
       // Send PUT request to update student
       fetch('http://localhost:3000/update-student', {
         method: 'PUT',
@@ -719,13 +725,9 @@
         });
     });
 
-    // Add event listener for form submission to show confirmation message
-    document.getElementById('editStudentForm').addEventListener('submit', function(event) {
-      const confirmation = confirm("Are you sure you want to save the changes?");
-      if (!confirmation) {
-        event.preventDefault();
-      }
-    });
+ 
+
+ 
 
   </script>
   <!-- <script src="js/script.js"></script> -->
