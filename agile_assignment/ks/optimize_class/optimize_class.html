@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subject Capacities</title>
+    <link rel="stylesheet" href="optimize_class.css">
+</head>
+<body>
+    <h1>Subject Capacities</h1>
+    <select id="subjectDropdown">
+        <option value="">Select a subject</option>
+        <!-- Subject options will be populated dynamically -->
+    </select>
+
+    <table id="classTable" style="display: none;">
+        <thead>
+            <tr>
+                <th>Class Name</th>
+                <th>Total Capacity</th>
+                <th>Enrolled Students</th>
+                <th>Available Seats</th>
+                <th>Utilization</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="classDetailsTable"></tbody>
+    </table>
+    <script src="optimize_class.js"></script>
+</body>
+</html>
