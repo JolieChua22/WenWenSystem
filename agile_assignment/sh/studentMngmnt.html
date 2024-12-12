@@ -226,17 +226,16 @@
       <span class="close-edit">&times;</span>
       <h3>Edit Student Details</h3>
       <form id="editStudentForm">
-        <label for="displayStudentID">Student ID:</label>
-     
-        <input type="text" id="editStudentID" name="StudentID" readonly>
+        <label for="editStudentID">Student ID:</label>
+        <input type="text" id="editStudentID" name="StudentID" readonly pattern="^\d+$" title="StudentID must be an integer.">
         <br><br>
 
         <label for="editFirstName">First Name:</label>
-        <input type="text" id="editFirstName" name="FirstName" required pattern="^[A-Za-z]+$" title="First name must contain only letters">
+        <input type="text" id="editFirstName" name="FirstName" required pattern="^[A-Za-z]+$" title="First name must contain only letters.">
         <br><br>
 
         <label for="editLastName">Last Name:</label>
-        <input type="text" id="editLastName" name="LastName" required pattern="^[A-Za-z]+$" title="Last name must contain only letters">
+        <input type="text" id="editLastName" name="LastName" required pattern="^[A-Za-z]+$" title="Last name must contain only letters.">
         <br><br>
 
         <label for="editDOB">Date of Birth:</label>
@@ -253,11 +252,11 @@
         <br><br>
 
         <label for="editContact">Contact Number:</label>
-        <input type="text" id="editContact" name="ContactNumber" required pattern="^\d{10,11}$" title="Enter a 10-11-digit contact number">
+        <input type="text" id="editContact" name="ContactNumber" required pattern="^\d{10,11}$" title="Contact number must be 10-11 digits.">
         <br><br>
 
         <label for="editEmail">Email:</label>
-        <input type="email" id="editEmail" name="Email" required>
+        <input type="email" id="editEmail" name="Email" required title="Invalid email format.">
         <br><br>
 
         <!-- Replace single Address field with three separate fields -->
@@ -268,12 +267,12 @@
 
         <!-- Address Line 2 -->
         <label for="editAddressLine2">Address Line 2:</label>
-        <input type="text" id="editAddressLine2" name="AddressLine2">
+        <input type="text" id="editAddressLine2" name="AddressLine2"required>
         <br><br>
 
         <!-- Address Line 3 -->
         <label for="editAddressLine3">Address Line 3:</label>
-        <input type="text" id="editAddressLine3" name="AddressLine3" required>
+        <input type="text" id="editAddressLine3" name="AddressLine3" >
         <br><br>
 
         <label for="editEnrollmentDate">Enrollment Date:</label>
@@ -281,7 +280,7 @@
         <br><br>
 
         <label for="editEmergencyContact">Emergency Contact:</label>
-        <input type="text" id="editEmergencyContact" name="EmergencyContact" required pattern="^(?:\D*\d){10,11}$" title="Enter a 10-11-digit contact number">
+        <input type="text" id="editEmergencyContact" name="EmergencyContact" required pattern="^(?:\D*\d){10,11}$" title="Emergency contact must contain exactly 10-11 digits, optionally with non-digit characters.">
         <br><br>
 
         <button type="submit">Save Changes</button>

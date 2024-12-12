@@ -47,10 +47,7 @@ db.connect((err) => {
 app.use(bodyParser.json());
 app.use(express.static(__dirname));
 
-const { body, validationResult } = require('express-validator');
 
-// Middleware for validation
-app.use(express.json());
 
 //wyman
 // Login Route
@@ -339,36 +336,7 @@ app.get('/class-details', (req, res) => {
 //sprint3
 
 // Route to update student details
-app.put('/update-student', [
-  body('StudentID').isInt().withMessage('StudentID must be an integer.'),
-  body('FirstName')
-    .trim()
-    .notEmpty().withMessage('First name is required.')
-    .matches(/^[A-Za-z]+$/).withMessage('First name must contain only letters.'),
-  body('LastName')
-    .trim()
-    .notEmpty().withMessage('Last name is required.')
-    .matches(/^[A-Za-z]+$/).withMessage('Last name must contain only letters.'),
-  body('DateOfBirth').isISO8601().toDate().withMessage('Invalid date of birth.'),
-  body('Gender').isIn(['Male', 'Female', 'Other']).withMessage('Invalid gender.'),
-  
-  // Updated validation for ContactNumber
-  body('ContactNumber')
-    .matches(/^\d{10,11}$/).withMessage('Contact number must be 10-11 digits.'),
-  
-  body('Email').isEmail().withMessage('Invalid email format.'),
-  body('Address').trim().notEmpty().withMessage('Address is required.'),
-  body('EnrollmentDate').isISO8601().toDate().withMessage('Invalid enrollment date.'),
-
-  // Updated validation for EmergencyContact
-  body('EmergencyContact')
-    .matches(/^(?:\D*\d){10,11}$/).withMessage('Emergency contact must contain exactly 10-11 digits, optionally with non-digit characters.')
-], (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
+app.put('/update-student', (req, res) => {
   const {
     StudentID,
     FirstName,
@@ -396,16 +364,6 @@ app.put('/update-student', [
     !EmergencyContact
   ) {
     return res.status(400).json({ message: 'All fields are required.' });
-  }
-
-  // Additional validations (e.g., email format, contact number)
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(Email)) {
-    return res.status(400).json({ message: 'Invalid email format.' });
-  }
-
-  if (!/^\d{10,11}$/.test(ContactNumber)) {
-    return res.status(400).json({ message: 'Contact number must contain only 10-11 digits.' });
   }
 
   // Update query using parameterized inputs
