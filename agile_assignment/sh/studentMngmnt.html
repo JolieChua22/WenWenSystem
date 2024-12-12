@@ -260,8 +260,20 @@
         <input type="email" id="editEmail" name="Email" required>
         <br><br>
 
-        <label for="editAddress">Address:</label>
-        <input type="text" id="editAddress" name="Address" required>
+        <!-- Replace single Address field with three separate fields -->
+        <!-- Address Line 1 -->
+        <label for="editAddressLine1">Address Line 1:</label>
+        <input type="text" id="editAddressLine1" name="AddressLine1" required>
+        <br><br>
+
+        <!-- Address Line 2 -->
+        <label for="editAddressLine2">Address Line 2:</label>
+        <input type="text" id="editAddressLine2" name="AddressLine2">
+        <br><br>
+
+        <!-- Address Line 3 -->
+        <label for="editAddressLine3">Address Line 3:</label>
+        <input type="text" id="editAddressLine3" name="AddressLine3" required>
         <br><br>
 
         <label for="editEnrollmentDate">Enrollment Date:</label>
@@ -653,7 +665,13 @@
           document.getElementById('editGender').value = student.Gender;
           document.getElementById('editContact').value = student.ContactNumber;
           document.getElementById('editEmail').value = student.Email;
-          document.getElementById('editAddress').value = student.Address;
+          
+          // Split the address into three parts
+          const addressParts = student.Address.split(', ');
+          document.getElementById('editAddressLine1').value = addressParts[0] || '';
+          document.getElementById('editAddressLine2').value = addressParts[1] || '';
+          document.getElementById('editAddressLine3').value = addressParts[2] || '';
+
           document.getElementById('editEnrollmentDate').value = new Date(student.EnrollmentDate).toISOString().split('T')[0];
           document.getElementById('editEmergencyContact').value = student.EmergencyContact;
 
@@ -682,6 +700,12 @@
     editStudentForm.addEventListener("submit", function (e) {
       e.preventDefault();
 
+      // Combine the three address fields into one
+      const addressLine1 = document.getElementById('editAddressLine1').value.trim();
+      const addressLine2 = document.getElementById('editAddressLine2').value.trim();
+      const addressLine3 = document.getElementById('editAddressLine3').value.trim();
+      const combinedAddress = `${addressLine1}${addressLine2 ? ', ' + addressLine2 : ''}, ${addressLine3}`;
+
       const studentData = {
         StudentID: document.getElementById('editStudentID').value,
         FirstName: document.getElementById('editFirstName').value.trim(),
@@ -690,7 +714,7 @@
         Gender: document.getElementById('editGender').value,
         ContactNumber: document.getElementById('editContact').value.trim(),
         Email: document.getElementById('editEmail').value.trim(),
-        Address: document.getElementById('editAddress').value.trim(),
+        Address: combinedAddress, // Use the combined address
         EnrollmentDate: document.getElementById('editEnrollmentDate').value,
         EmergencyContact: document.getElementById('editEmergencyContact').value.trim()
       };

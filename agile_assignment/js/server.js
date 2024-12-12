@@ -149,39 +149,32 @@ app.get('/students', (req, res) => {
   let params = [];
 
   if (queryTerm) {
-    // Define all fields to search across
-    const searchFields = [
-      'StudentID',
-      'FirstName',
-      'LastName',
-      'DateOfBirth',
-      'Gender',
-      'ContactNumber',
-      'Email',
-      'Address',
-      'EnrollmentDate',
-      'EmergencyContact'
-    ];
+    // Check if the queryTerm is an integer (assuming StudentID is numeric)
+    if (!isNaN(parseInt(queryTerm))) {
+      query += ' WHERE StudentID = ?';
+      params.push(parseInt(queryTerm));
+    } else {
+      // Define all fields to search across except StudentID
+      const searchFields = [
+        'FirstName',
+        'LastName',
+        'DateOfBirth',
+        'Gender',
+        'ContactNumber',
+        'Email',
+        'Address',
+        'EnrollmentDate',
+        'EmergencyContact'
+      ];
 
-    // Construct the WHERE clause with OR conditions for each field
-    const searchConditions = searchFields.map(field => {
-      if (['StudentID'].includes(field)) {
-        // Cast numeric fields to CHAR for LIKE comparison
-        return `CAST(${field} AS CHAR) LIKE ?`;
-      } else if (['DateOfBirth', 'EnrollmentDate'].includes(field)) {
-        // Format date fields as strings
-        return `DATE_FORMAT(${field}, '%Y-%m-%d') LIKE ?`;
-      } else {
-        // For string fields
-        return `${field} LIKE ?`;
-      }
-    }).join(' OR ');
+      // Construct the WHERE clause with OR conditions for each field
+      const searchConditions = searchFields.map(field => `${field} LIKE ?`).join(' OR ');
+      query += ` WHERE ${searchConditions}`;
 
-    query += ` WHERE ${searchConditions}`;
-
-    // Prepare the search pattern for each field
-    const searchPattern = `%${queryTerm}%`;
-    params = Array(searchFields.length).fill(searchPattern);
+      // Prepare the search pattern for each field
+      const searchPattern = `%${queryTerm}%`;
+      params = Array(searchFields.length).fill(searchPattern);
+    }
   }
 
   // Handle sorting if sortField is provided and valid
@@ -194,8 +187,8 @@ app.get('/students', (req, res) => {
 
   db.query(query, params, (err, results) => {
     if (err) {
-      console.error('Error fetching students:', err.stack);
-      return res.status(500).send({ error: 'Database error' });
+      console.error('Error executing query:', err);
+      return res.status(500).json({ error: 'Internal server error' });
     }
     console.log('Number of Records Found:', results.length);
     res.json(results);
