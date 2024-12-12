@@ -127,6 +127,11 @@
     td:last-child button:hover {
       background-color: #45a049;
     }
+
+    input[readonly] {
+      background-color: #f0f0f0;
+      border-color: #ccc;
+    }
   </style>
 </head>
 
@@ -221,7 +226,10 @@
       <span class="close-edit">&times;</span>
       <h3>Edit Student Details</h3>
       <form id="editStudentForm">
-        <input type="hidden" id="editStudentID" name="StudentID">
+        <label for="displayStudentID">Student ID:</label>
+     
+        <input type="text" id="editStudentID" name="StudentID" readonly>
+        <br><br>
 
         <label for="editFirstName">First Name:</label>
         <input type="text" id="editFirstName" name="FirstName" required>
