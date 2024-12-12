@@ -232,11 +232,11 @@
         <br><br>
 
         <label for="editFirstName">First Name:</label>
-        <input type="text" id="editFirstName" name="FirstName" required>
+        <input type="text" id="editFirstName" name="FirstName" required pattern="^[A-Za-z]+$" title="First name must contain only letters">
         <br><br>
 
         <label for="editLastName">Last Name:</label>
-        <input type="text" id="editLastName" name="LastName" required>
+        <input type="text" id="editLastName" name="LastName" required pattern="^[A-Za-z]+$" title="Last name must contain only letters">
         <br><br>
 
         <label for="editDOB">Date of Birth:</label>
@@ -253,7 +253,7 @@
         <br><br>
 
         <label for="editContact">Contact Number:</label>
-        <input type="text" id="editContact" name="ContactNumber" required>
+        <input type="text" id="editContact" name="ContactNumber" required pattern="^\d{10,11}$" title="Enter a 10-11-digit contact number">
         <br><br>
 
         <label for="editEmail">Email:</label>
@@ -269,7 +269,7 @@
         <br><br>
 
         <label for="editEmergencyContact">Emergency Contact:</label>
-        <input type="text" id="editEmergencyContact" name="EmergencyContact" required>
+        <input type="text" id="editEmergencyContact" name="EmergencyContact" required pattern="^(?:\D*\d){10,11}$" title="Enter a 10-11-digit contact number with optional characters">
         <br><br>
 
         <button type="submit">Save Changes</button>
@@ -717,6 +717,14 @@
           console.error('Error updating student:', error);
           alert('An error occurred while updating the student.');
         });
+    });
+
+    // Add event listener for form submission to show confirmation message
+    document.getElementById('editStudentForm').addEventListener('submit', function(event) {
+      const confirmation = confirm("Are you sure you want to save the changes?");
+      if (!confirmation) {
+        event.preventDefault();
+      }
     });
 
   </script>
