@@ -21,7 +21,7 @@ document.getElementById('login-form').addEventListener('submit', function (event
     .then(data => {
         console.log('Server Response:', data); // Debugging server response
         if (data.message === 'Login successful!') {
-            // Store teacher details in sessionStorage
+            localStorage.setItem('teacherId', data.teacherID); // Store teacherId
             sessionStorage.setItem('teacherID', data.teacherID);
             sessionStorage.setItem('firstName', data.firstName);
             sessionStorage.setItem('lastName', data.lastName);

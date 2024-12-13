@@ -66,9 +66,11 @@ app.get('/classes', (req, res) => {
 });
 
 
+
 // Fetch students by class and date
 app.get('/students', (req, res) => {
   const { classId, date } = req.query;
+  console.log('Fetching students with:', { classId, date });
 
   if (!classId || !date) {
     return res.status(400).json({ message: 'Class ID and date are required' });
@@ -84,15 +86,15 @@ app.get('/students', (req, res) => {
 
   db.query(query, [date, classId], (err, results) => {
     if (err) {
-      console.error(err);
-      res.status(500).send('Error fetching students');
-    } else {
-      res.json(results);
+      console.error('Error fetching students:', err);
+      return res.status(500).json({ message: 'Error fetching students' });
     }
+    console.log('Students fetched:', results);
+    res.json(results);
   });
 });
 
-// Save attendance
+
 app.post('/mark-attendance', (req, res) => {
   const attendanceData = req.body;
 
@@ -121,6 +123,7 @@ app.post('/mark-attendance', (req, res) => {
     }
   });
 });
+
 
 
 

@@ -3,18 +3,27 @@ let allStudents = []; // To store the list of all students
 
 // Fetch all classes for the logged-in tutor and populate the dropdown
 async function fetchClasses() {
+  const teacherId = sessionStorage.getItem('teacherId') || localStorage.getItem('teacherId'); // Check both storages
+
+  if (!teacherId) {
+    alert('Unable to identify the logged-in tutor. Please log in again.');
+    window.location.href = '../login/login.html'; // Redirect to login page
+    return;
+  }
+
   try {
-    const teacherId = sessionStorage.getItem('teacherId'); // Retrieve logged-in tutor ID
-    if (!teacherId) {
-      alert('Unable to identify the logged-in tutor.');
-      return;
+    const response = await fetch(`http://localhost:3000/classes?teacherId=${teacherId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch classes');
     }
 
-    const response = await fetch(`http://localhost:3000/classes?teacherId=${teacherId}`);
-    allClasses = await response.json();
-    const classSelect = document.getElementById('class');
+    const classes = await response.json();
+    allClasses = classes; // Store classes in the global array
 
-    allClasses.forEach(cls => {
+    console.log('Fetched Classes:', allClasses);
+
+    const classSelect = document.getElementById('class');
+    classes.forEach(cls => {
       const option = document.createElement('option');
       option.value = cls.ClassID;
       option.textContent = `${cls.ClassName} (${cls.RoomNumber})`;
@@ -23,19 +32,28 @@ async function fetchClasses() {
     });
   } catch (error) {
     console.error('Error fetching classes:', error);
+    alert('Failed to load classes. Please try again.');
   }
 }
+
+
 
 // Validate selected date against the class day
 function validateDate(classId, selectedDate) {
   const selectedClass = allClasses.find(cls => cls.ClassID == classId);
-  if (!selectedClass) return false;
+  if (!selectedClass) {
+    console.error('No matching class found for ClassID:', classId);
+    return false;
+  }
 
   const classDay = selectedClass.Day;
   const dayOfWeek = new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long' });
 
+  console.log(`Class Day: ${classDay}, Selected Date Day: ${dayOfWeek}`);
   return classDay === dayOfWeek;
 }
+
+
 
 // Fetch students by class and date
 async function fetchStudents(classId, date) {
@@ -44,22 +62,29 @@ async function fetchStudents(classId, date) {
     const errorMessage = document.getElementById('error-message');
     const studentsList = document.getElementById('students-list');
 
-    // Clear previous student list and error message
     studentsList.innerHTML = '';
     document.getElementById('room-info').textContent = '';
 
     if (!isValidDate) {
       errorMessage.textContent = 'The selected date does not match the scheduled day for this class.';
-      return; // Stop further execution if validation fails
+      return;
     }
 
     errorMessage.textContent = ''; // Clear error message
 
+    console.log('Fetching students for:', { classId, date });
+
     const response = await fetch(`http://localhost:3000/students?classId=${classId}&date=${date}`);
+    if (!response.ok) {
+      console.error('Error fetching students:', response.statusText);
+      studentsList.innerHTML = '<tr><td colspan="3">Failed to fetch students</td></tr>';
+      return;
+    }
+
     const students = await response.json();
+    console.log('Students fetched:', students);
 
     if (students.length > 0) {
-      // Display the room number for the selected class
       const selectedClass = allClasses.find(cls => cls.ClassID == classId);
       document.getElementById('room-info').textContent = `Room Number: ${selectedClass.RoomNumber}`;
     } else {
@@ -70,8 +95,27 @@ async function fetchStudents(classId, date) {
     displayStudents(allStudents);
   } catch (error) {
     console.error('Error fetching students:', error);
+    document.getElementById('students-list').innerHTML = '<tr><td colspan="3">Error loading students</td></tr>';
   }
 }
+
+
+async function fetchStudentsAPI(classId, date) {
+  try {
+    const response = await fetch(`http://localhost:3000/students?classId=${classId}&date=${date}`);
+    if (!response.ok) {
+      console.error('Error fetching students:', response.statusText);
+      return [];
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error making API request:', error);
+    return [];
+  }
+}
+
+
 
 // Filter students by name
 function filterStudentsByName() {
