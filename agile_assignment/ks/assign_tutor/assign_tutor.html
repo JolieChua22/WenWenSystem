@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assign Tutor to Subject</title>
+  <link rel="stylesheet" href="assign_tutor.css">
+</head>
+<body>
+  <div class="form-container">
+    <h1>Assign Tutor to Subject</h1>
+    <form id="assignForm">
+      <div class="form-group">
+        <label for="subject">Select Subject:</label>
+        <select id="subject" name="subject" required>
+          <option value="">Select a subject</option>
+          <!-- Subject options will be populated dynamically -->
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="tutor">Select Tutor:</label>
+        <select id="tutor" name="tutor" required>
+          <option value="">Select a tutor</option>
+          <!-- Tutor options will be populated dynamically -->
+        </select>
+      </div>
+
+      <button type="submit">Assign Tutor</button>
+    </form>
+    <p id="responseMessage"></p>
+  </div>
+
+  <script src="assign_tutor.js"></script>
+</body>
+</html>
