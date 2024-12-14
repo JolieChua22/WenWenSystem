@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mark Attendance</title>
+  <link rel="stylesheet" href="markAttendance.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #f9f9f9;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    h1 {
+      text-align: center;
+    }
+    .filters {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .filters label {
+      margin-right: 10px;
+    }
+    .filters input, .filters select {
+      padding: 5px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .error-message {
+      color: red;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    .room-info {
+      margin-bottom: 20px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+    }
+    .students-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .students-table th, .students-table td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    .students-table th {
+      background-color: #f2f2f2;
+    }
+    .radio-group {
+      display: flex;
+      justify-content: space-around;
+    }
+    .radio-group label {
+      margin-right: 10px;
+    }
+    .submit-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Mark Attendance</h1>
+    <div class="filters">
+      <div>
+        <label for="class">Class:</label>
+        <select id="class" name="class">
+          <option value="">--Select Class--</option>
+          <!-- Classes populated dynamically -->
+        </select>
+      </div>
+      <div>
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="date">
+      </div>
+      <button id="search" class="submit-btn">Search</button>
+    </div>
+    <div class="error-message" id="error-message"></div>
+    <div class="room-info" id="room-info">
+      <!-- Room number will be displayed here -->
+    </div>
+    <div>
+      <label for="search-student">Search Student:</label>
+      <input type="text" id="search-student" placeholder="Enter student name">
+    </div>
+    <table class="students-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Student Name</th>
+          <th>Attendance</th>
+        </tr>
+      </thead>
+      <tbody id="students-list">
+        <!-- Students populated dynamically -->
+      </tbody>
+    </table>
+    <button id="save-attendance" class="submit-btn">Save Attendance</button>
+  </div>
+  <script src="markAttendance.js"></script>
+</body>
+</html>

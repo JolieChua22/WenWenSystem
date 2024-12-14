@@ -50,6 +50,85 @@ app.use(express.static(__dirname));
 
 
 //wyman
+// Endpoint to fetch classes based on logged-in tutor
+app.get('/classes', (req, res) => {
+  const teacherId = req.query.teacherId; // Assume teacherId is passed as a query parameter
+  if (!teacherId) {
+    return res.status(400).json({ message: 'Teacher ID is required.' });
+  }
+
+  const query = 'SELECT * FROM Classes WHERE TeacherID = ?';
+  db.query(query, [teacherId], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ message: 'Error fetching classes.' });
+    }
+    res.json(results);
+  });
+});
+
+
+
+// Fetch students by class and date
+app.get('/students', (req, res) => {
+  const { classId, date } = req.query;
+  console.log('Fetching students with:', { classId, date });
+
+  if (!classId || !date) {
+    return res.status(400).json({ message: 'Class ID and date are required' });
+  }
+
+  const query = `
+    SELECT s.StudentID, s.FirstName, s.LastName, a.Status
+    FROM Student_Class_relationship scr
+    JOIN Students s ON scr.StudentID = s.StudentID
+    LEFT JOIN Attendance a ON scr.StudentID = a.StudentID AND scr.ClassID = a.ClassID AND a.Date = ?
+    WHERE scr.ClassID = ?
+  `;
+
+  db.query(query, [date, classId], (err, results) => {
+    if (err) {
+      console.error('Error fetching students:', err);
+      return res.status(500).json({ message: 'Error fetching students' });
+    }
+    console.log('Students fetched:', results);
+    res.json(results);
+  });
+});
+
+
+app.post('/mark-attendance', (req, res) => {
+  const attendanceData = req.body;
+
+  if (!Array.isArray(attendanceData) || attendanceData.length === 0) {
+    return res.status(400).json({ message: 'Invalid attendance data.' });
+  }
+
+  const query = `
+    INSERT INTO Attendance (StudentID, ClassID, Date, Status)
+    VALUES ? ON DUPLICATE KEY UPDATE Status = VALUES(Status)
+  `;
+
+  const values = attendanceData.map(({ studentId, classId, date, status }) => [
+    studentId,
+    classId,
+    date,
+    status,
+  ]);
+
+  db.query(query, [values], err => {
+    if (err) {
+      console.error('Error saving attendance:', err);
+      res.status(500).json({ message: 'Failed to save attendance.' });
+    } else {
+      res.status(200).json({ message: 'Attendance saved successfully!' });
+    }
+  });
+});
+
+
+
+
 // Login Route
 app.post('/login', (req, res) => {
   const { teacherID, password } = req.body;
