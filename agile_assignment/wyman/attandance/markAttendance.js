@@ -184,6 +184,18 @@ async function saveAttendance() {
     return { studentId, classId, date, status };
   });
 
+  // Check if any attendance status is defaulting to "Absent"
+  const defaultAbsentCount = attendanceData.filter(data => data.status === 'Absent' && !document.querySelector(`input[name^="attendance-${data.studentId}"]:checked`)).length;
+
+  if (defaultAbsentCount > 0) {
+    const confirmAbsent = confirm(
+      `You have not marked attendance for ${defaultAbsentCount} student(s). Their status will default to "Absent". Do you want to continue?`
+    );
+    if (!confirmAbsent) {
+      return; // Exit if the user cancels
+    }
+  }
+
   try {
     const response = await fetch('http://localhost:3000/mark-attendance', {
       method: 'POST',
