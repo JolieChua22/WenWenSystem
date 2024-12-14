@@ -1,0 +1,124 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa;
+    color: #343a40;
+}
+
+h1, h2, h3 {
+    text-align: center;
+    color: #6f42c1;
+}
+
+p {
+    text-align: center;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin: 10px auto;
+    padding: 15px;
+    max-width: 600px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Buttons */
+button {
+    background-color: #6f42c1;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+    margin: 10px 5px; /* Added margin for spacing */
+}
+
+button:hover {
+    background-color: #563d7c;
+}
+
+button.cancel-btn {
+    background-color: #dc3545;
+}
+
+button.cancel-btn:hover {
+    background-color: #b52a37;
+}
+
+button.view-students-btn {
+    background-color: #28a745;
+}
+
+button.view-students-btn:hover {
+    background-color: #218838;
+}
+
+/* Centering for messages */
+#noStudentsMessage {
+    text-align: center;
+    color: #ff4d4d;
+    font-size: 16px;
+    font-weight: bold;
+    margin: 15px 0;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px auto;
+    max-width: 800px;
+    background-color: #ffffff;
+}
+
+th, td {
+    border: 1px solid #dee2e6;
+    padding: 10px;
+    text-align: center;
+}
+
+th {
+    background-color: #6f42c1;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+#notLoggedIn {
+    text-align: center; /* Center the text and button horizontally */
+    display: flex; /* Use Flexbox for vertical centering */
+    flex-direction: column; /* Align items in a column */
+    justify-content: center; /* Center vertically */
+    align-items: center; /* Center horizontally */
+    height: 100vh; /* Full viewport height */
+    margin: 0; /* Remove any margin */
+}
+
+#notLoggedIn button {
+    background-color: #6f42c1; /* Purple color */
+    color: white;
+    border: none;
+    padding: 10px 20px; /* Adjust button padding */
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 20px; /* Add some space above the button */
+}
+
+#notLoggedIn button:hover {
+    background-color: #563d7c; /* Darker purple color on hover */
+}
