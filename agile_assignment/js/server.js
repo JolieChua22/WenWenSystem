@@ -55,27 +55,27 @@ app.post('/login', (req, res) => {
   const query = 'SELECT * FROM Teachers WHERE TeacherID = ?';
   db.query(query, [teacherID], (err, results) => {
 
-      if (err) {
-          console.error('Error fetching teacher:', err.stack);
-          return res.status(500).json({ message: 'Internal server error.' });
-      }
+    if (err) {
+      console.error('Error fetching teacher:', err.stack);
+      return res.status(500).json({ message: 'Internal server error.' });
+    }
 
-      if (results.length === 0) {
-          return res.status(401).json({ message: 'Invalid TeacherID or no matching record found in the database.' });
-      }
+    if (results.length === 0) {
+      return res.status(401).json({ message: 'Invalid TeacherID or no matching record found in the database.' });
+    }
 
-      const teacher = results[0];
-      // Assuming plaintext password for simplicity; replace with bcrypt if hashing is used
-      if (password === teacher.Password) {
-          res.status(200).json({
-              message: 'Login successful!',
-              teacherID: teacher.TeacherID,
-              firstName: teacher.FirstName,
-              lastName: teacher.LastName
-          });
-      } else {
-          res.status(401).json({ message: 'Your password is invalid. Please try again.' });
-      }
+    const teacher = results[0];
+    // Assuming plaintext password for simplicity; replace with bcrypt if hashing is used
+    if (password === teacher.Password) {
+      res.status(200).json({
+        message: 'Login successful!',
+        teacherID: teacher.TeacherID,
+        firstName: teacher.FirstName,
+        lastName: teacher.LastName
+      });
+    } else {
+      res.status(401).json({ message: 'Your password is invalid. Please try again.' });
+    }
   });
 });
 
@@ -237,7 +237,7 @@ app.post('/assign-student', (req, res) => {
     WHERE StudentID = ? AND ClassID = ?
     LIMIT 1
   `;
-  
+
   db.query(checkQuery, [studentId, classId], (err, results) => {
     if (err) {
       console.error('Error checking existing assignment:', err);
@@ -254,7 +254,7 @@ app.post('/assign-student', (req, res) => {
       INSERT INTO student_class_relationship (StudentID, ClassID, EnrollmentDate, PerformanceGrade)
       VALUES (?, ?, CURDATE(), ?)
     `;
-    
+
     db.query(insertQuery, [studentId, classId, performanceGrade || null], (err, results) => {
       if (err) {
         console.error('Error assigning student to class:', err);
@@ -286,7 +286,7 @@ app.get('/student-classes', (req, res) => {
 // Route to fetch classes by subject ID
 app.get('/classes-by-subject', (req, res) => {
   const subjectId = req.query.subjectId;
-  
+
   if (!subjectId) {
     return res.status(400).json({ message: 'Subject ID is required.' });
   }
@@ -457,6 +457,44 @@ app.post('/assign-tutor', (req, res) => {
   });
 });
 
+// Sprint 3
+app.get('/subject-class-details', (req, res) => {
+  const query = `
+    SELECT 
+        s.SubjectName AS subjectName,
+        c.ClassName AS className,
+        c.Capacity AS classCapacity,
+        COUNT(scr.StudentID) AS enrolledStudents,
+        c.Capacity - COUNT(scr.StudentID) AS availableSeats,
+        CONCAT(ROUND((COUNT(scr.StudentID) / COALESCE(c.Capacity, 1)) * 100, 2), '%') AS utilization,
+        CASE
+            WHEN COUNT(scr.StudentID) >= c.Capacity THEN 'Full'
+            WHEN COUNT(scr.StudentID) / COALESCE(c.Capacity, 1) >= 0.8 THEN 'Almost Full'
+            ELSE 'Available'
+        END AS status
+    FROM 
+        Subjects s
+    LEFT JOIN 
+        Classes c ON s.SubjectID = c.Subject
+    LEFT JOIN 
+        Student_Class_relationship scr ON c.ClassID = scr.ClassID
+    GROUP BY 
+        s.SubjectName, c.ClassName, c.Capacity
+    ORDER BY 
+        s.SubjectName, c.ClassName;
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching subject-class details:', err.stack);
+      return res.status(500).json({ success: false, message: 'Database error.' });
+    }
+
+    res.status(200).json({ success: true, data: results });
+  });
+});
+
+
 //xy
 // Route to fetch teachers for the dropdown in createClasses.html
 app.get('/get-teachers', (req, res) => {
@@ -490,10 +528,7 @@ app.post('/create-class', (req, res) => {
 
   // Validate required fields
   if (!className || !subject || !teacherId || !day || !startTime || !endTime || !roomNumber) {
-
-
-      return res.status(400).json({ message: 'All fields are required.' });
-
+    return res.status(400).json({ message: 'All fields are required.' });
   }
 
   // Validate time range
@@ -501,19 +536,16 @@ app.post('/create-class', (req, res) => {
   const workingHoursEnd = '22:00:00';
 
   if (startTime < workingHoursStart || endTime > workingHoursEnd) {
-
-      return res.status(400).json({ message: 'Class time must be within working hours (10:00 AM to 10:00 PM).' });
+    return res.status(400).json({ message: 'Class time must be within working hours (10:00 AM to 10:00 PM).' });
   }
 
   if (startTime >= endTime) {
-      return res.status(400).json({ message: 'End time must be later than start time.' });
-
+    return res.status(400).json({ message: 'End time must be later than start time.' });
   }
 
   // Check for class name duplication
   const checkClassQuery = 'SELECT ClassID FROM classes WHERE ClassName = ?';
   db.query(checkClassQuery, [className], (err, classResults) => {
-
     if (err) {
       console.error('Error checking class name:', err.stack);
       return res.status(500).json({ message: 'Database error while checking class name.' });
@@ -525,14 +557,12 @@ app.post('/create-class', (req, res) => {
 
     // Check for overlapping classes
     const checkOverlapQuery = `
-
           SELECT * FROM classes
           WHERE RoomNumber = ? AND Day = ? AND (
               (StartTime < ? AND EndTime > ?) OR 
               (StartTime < ? AND EndTime > ?)
           )
       `;
-
     db.query(checkOverlapQuery, [roomNumber, day, endTime, startTime, startTime, endTime], (err, overlapResults) => {
       if (err) {
         console.error('Error checking room availability:', err.stack);
