@@ -215,5 +215,37 @@ document.getElementById('search-student').addEventListener('input', filterStuden
 
 document.getElementById('save-attendance').addEventListener('click', saveAttendance);
 
+// Event listeners
+document.getElementById('search').addEventListener('click', () => {
+  const classId = document.getElementById('class').value;
+  const date = document.getElementById('date').value;
+  const errorMessage = document.getElementById('error-message');
+
+  // Check if class or date is not selected
+  if (!classId || !date) {
+    errorMessage.textContent = 'Please select a class and date before searching.';
+    return;
+  }
+
+  errorMessage.textContent = ''; // Clear any previous error message
+  fetchStudents(classId, date);
+});
+
+document.getElementById('save-attendance').addEventListener('click', () => {
+  const classId = document.getElementById('class').value;
+  const date = document.getElementById('date').value;
+  const errorMessage = document.getElementById('error-message');
+
+  // Check if class or date is not selected
+  if (!classId || !date) {
+    errorMessage.textContent = 'Please select a class and date before saving attendance.';
+    return;
+  }
+
+  errorMessage.textContent = ''; // Clear any previous error message
+  saveAttendance();
+});
+
+
 // Initialize
 fetchClasses();
