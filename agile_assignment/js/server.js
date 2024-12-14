@@ -194,10 +194,7 @@ app.get('/students', (req, res) => {
 
 
 //sprint2
-
-
 // ================== New Routes for Assigning Students to Classes ==================
-
 // Route to fetch all classes
 app.get('/classes', (req, res) => {
   console.log('Fetching classes...');
