@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Classes</title>
+    <link rel="stylesheet" href="manageClasses.css">
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+
+        h1,
+        h2,
+        h3 {
+            text-align: center;
+            color: #6f42c1;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin: 10px auto;
+            padding: 15px;
+            max-width: 600px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Buttons */
+        button {
+            background-color: #6f42c1;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+            margin-left: 10px;
+        }
+
+        button:hover {
+            background-color: #563d7c;
+        }
+
+        button.view-students-btn {
+            background-color: #28a745;
+        }
+
+        button.view-students-btn:hover {
+            background-color: #218838;
+        }
+
+        button.cancel-btn {
+            background-color: #dc3545;
+        }
+
+        button.cancel-btn:hover {
+            background-color: #b52a37;
+        }
+
+        /* Center login message */
+        #notLoggedIn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        #notLoggedIn h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        #notLoggedIn button {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #6f42c1;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #notLoggedIn button:hover {
+            background-color: #563d7c;
+        }
+
+        /* Response Message */
+        #responseMessage {
+            text-align: center;
+            font-size: 16px;
+        }
+
+        /* Student Details Section */
+        #studentDetails {
+            display: none;
+            margin-top: 30px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #studentDetails h3 {
+            margin-bottom: 15px;
+        }
+
+        #noStudentsMessage {
+            display: none;
+            color: red;
+            text-align: center;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+
+        th,
+        td {
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #6f42c1;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Displayed if not logged in -->
+    <div id="notLoggedIn" style="display: none;">
+        <h2>You are not logged in.</h2>
+        <button onclick="redirectToLogin()">Login as Tutor</button>
+    </div>
+
+    <!-- Manage Classes Container -->
+    <div id="manageClassesContainer" style="display: none;">
+        <h1>Manage Your Classes</h1>
+        <h3>Welcome, <span id="tutorName"></span></h3>
+        <p id="responseMessage"></p>
+        <ul id="classList">
+            <!-- Scheduled classes will be dynamically populated here -->
+        </ul>
+
+        <!-- Student Details Section -->
+        <div id="studentDetails">
+            <h3>Registered Students</h3>
+            <p id="noStudentsMessage">No students registered for this class.</p>
+            <table id="studentTable">
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Email</th>
+                        <th>Contact Number</th>
+                        <th>Enrollment Date</th>
+                    </tr>
+                </thead>
+                <tbody id="studentTableBody">
+                    <!-- Student details will be dynamically populated -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tutorID = sessionStorage.getItem('teacherID');
+            const firstName = sessionStorage.getItem('firstName');
+            const lastName = sessionStorage.getItem('lastName');
+
+            // Redirect to login page if not logged in
+            if (!tutorID) {
+                document.getElementById('notLoggedIn').style.display = 'flex';
+                return;
+            }
+
+            // Show the Manage Classes container
+            document.getElementById('manageClassesContainer').style.display = 'block';
+            document.getElementById('tutorName').textContent = `${firstName} ${lastName}`;
+
+            // Fetch classes for the tutor
+            fetch(`http://localhost:3000/dashboard-classes?tutorID=${tutorID}`)
+                .then((response) => response.json())
+                .then((classes) => {
+                    const classList = document.getElementById('classList');
+
+                    if (classes.length === 0) {
+                        const noClassesMessage = document.createElement('p');
+                        noClassesMessage.textContent = 'No classes scheduled under your account.';
+                        noClassesMessage.style.color = 'red';
+                        noClassesMessage.style.textAlign = 'center';
+                        classList.appendChild(noClassesMessage);
+                    } else {
+                        classes.forEach((cls) => {
+                            const listItem = document.createElement('li');
+
+                            // Create class info span
+                            const classInfo = document.createElement('span');
+                            classInfo.textContent = `${cls.ClassName} - ${cls.Subject} (${cls.Day} ${cls.StartTime} - ${cls.EndTime})`;
+                            listItem.appendChild(classInfo);
+
+                            // Create buttons container
+                            const buttonsContainer = document.createElement('div');
+
+                            // Cancel Button
+                            const cancelButton = document.createElement('button');
+                            cancelButton.textContent = 'Cancel';
+                            cancelButton.classList.add('cancel-btn');
+                            cancelButton.addEventListener('click', () => {
+                                const confirmCancel = confirm(`Are you sure you want to cancel the class "${cls.ClassName}"?`);
+                                if (confirmCancel) {
+                                    fetch('http://localhost:3000/cancel-class', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ classID: cls.ClassID }),
+                                    })
+                                        .then((response) => response.json())
+                                        .then((cancelData) => {
+                                            if (cancelData.success) {
+                                                alert('Class canceled successfully!');
+                                                listItem.remove();
+                                            } else {
+                                                alert(cancelData.message);
+                                            }
+                                        })
+                                        .catch((error) => {
+                                            console.error('Error canceling class:', error);
+                                            alert('An error occurred. Please try again.');
+                                        });
+                                }
+                            });
+                            buttonsContainer.appendChild(cancelButton);
+
+                            // View Students Button
+                            const viewStudentsButton = document.createElement('button');
+                            viewStudentsButton.textContent = 'View Students';
+                            viewStudentsButton.classList.add('view-students-btn');
+                            viewStudentsButton.addEventListener('click', () => {
+                                loadStudentDetails(cls.ClassID);
+                            });
+                            buttonsContainer.appendChild(viewStudentsButton);
+
+                            listItem.appendChild(buttonsContainer);
+                            classList.appendChild(listItem);
+                        });
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error fetching classes:', error);
+                    const responseMessage = document.getElementById('responseMessage');
+                    responseMessage.textContent = 'Failed to fetch classes. Please try again.';
+                    responseMessage.style.color = 'red';
+                    responseMessage.style.textAlign = 'center';
+                });
+        });
+
+        // Function to fetch and display student details
+        function loadStudentDetails(classID) {
+            fetch(`http://localhost:3000/class-students?classID=${classID}`)
+                .then((response) => response.json())
+                .then((students) => {
+                    const studentTableBody = document.getElementById('studentTableBody');
+                    const studentTable = document.getElementById('studentTable');
+                    const noStudentsMessage = document.getElementById('noStudentsMessage');
+                    const responseMessage = document.getElementById('responseMessage');
+
+                    // Clear previous data and messages
+                    studentTableBody.innerHTML = '';
+                    noStudentsMessage.style.display = 'none';
+                    responseMessage.textContent = '';
+                    studentTable.style.display = 'none';
+
+                    if (students.length === 0) {
+                        noStudentsMessage.style.display = 'block';
+                        studentTable.style.display = 'none';
+                    } else {
+                        students.forEach((student) => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${student.StudentID}</td>
+                                <td>${student.FirstName}</td>
+                                <td>${student.LastName}</td>
+                                <td>${student.Email}</td>
+                                <td>${student.ContactNumber}</td>
+                                <td>${student.EnrollmentDate}</td>
+                            `;
+                            studentTableBody.appendChild(row);
+                        });
+                        studentTable.style.display = 'table';
+                        document.getElementById('studentDetails').style.display = 'block';
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error fetching student details:', error);
+                    const responseMessage = document.getElementById('responseMessage');
+                    responseMessage.textContent = 'Failed to load student details. Please try again.';
+                    responseMessage.style.color = 'red';
+                    responseMessage.style.textAlign = 'center';
+                });
+        }
+
+        // Function to redirect to the login page
+        function redirectToLogin() {
+            window.location.href = '../wyman/login/login.html';
+        }
+    </script>
+</body>
+
+</html>

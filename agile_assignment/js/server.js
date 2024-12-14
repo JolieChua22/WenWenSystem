@@ -70,7 +70,7 @@ app.get('/classes', (req, res) => {
 
 
 // Fetch students by class and date
-app.get('/students', (req, res) => {
+app.get('/class-studentss', (req, res) => {
   const { classId, date } = req.query;
   console.log('Fetching students with:', { classId, date });
 
@@ -95,7 +95,6 @@ app.get('/students', (req, res) => {
     res.json(results);
   });
 });
-
 
 app.post('/mark-attendance', (req, res) => {
   const attendanceData = req.body;
@@ -125,9 +124,6 @@ app.post('/mark-attendance', (req, res) => {
     }
   });
 });
-
-
-
 
 // Login Route
 app.post('/login', (req, res) => {
@@ -159,7 +155,6 @@ app.post('/login', (req, res) => {
     }
   });
 });
-
 
 app.post("/submit", async (req, res) => {
   try {
@@ -810,6 +805,40 @@ app.post('/cancel-class', (req, res) => {
   });
 });
 
+// Route to fetch student details under a class
+app.get('/class-students', (req, res) => {
+  const { classID } = req.query;
+
+  if (!classID) {
+    return res.status(400).json({ message: 'Class ID is required.' });
+  }
+
+  const query = `
+    SELECT 
+      sc.StudentID, 
+      s.FirstName, 
+      s.LastName, 
+      s.Email, 
+      s.ContactNumber, 
+      sc.EnrollmentDate 
+    FROM student_class_relationship sc
+    JOIN Students s ON sc.StudentID = s.StudentID
+    WHERE sc.ClassID = ?
+  `;
+
+  db.query(query, [classID], (err, results) => {
+    if (err) {
+      console.error('Error fetching student details:', err.stack);
+      return res.status(500).json({ message: 'Database error.' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'No students registered in this class.' });
+    }
+
+    res.status(200).json(results);
+  });
+});
 
 // Start the server
 app.listen(port, () => {

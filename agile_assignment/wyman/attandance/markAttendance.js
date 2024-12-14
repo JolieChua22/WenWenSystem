@@ -74,7 +74,7 @@ async function fetchStudents(classId, date) {
 
     console.log('Fetching students for:', { classId, date });
 
-    const response = await fetch(`http://localhost:3000/students?classId=${classId}&date=${date}`);
+    const response = await fetch(`http://localhost:3000/class-studentss?classId=${classId}&date=${date}`);
     if (!response.ok) {
       console.error('Error fetching students:', response.statusText);
       studentsList.innerHTML = '<tr><td colspan="3">Failed to fetch students</td></tr>';
