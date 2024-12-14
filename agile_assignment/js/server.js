@@ -47,6 +47,8 @@ db.connect((err) => {
 app.use(bodyParser.json());
 app.use(express.static(__dirname));
 
+
+
 //wyman
 // Login Route
 app.post('/login', (req, res) => {
@@ -144,39 +146,32 @@ app.get('/students', (req, res) => {
   let params = [];
 
   if (queryTerm) {
-    // Define all fields to search across
-    const searchFields = [
-      'StudentID',
-      'FirstName',
-      'LastName',
-      'DateOfBirth',
-      'Gender',
-      'ContactNumber',
-      'Email',
-      'Address',
-      'EnrollmentDate',
-      'EmergencyContact'
-    ];
+    // Check if the queryTerm is an integer (assuming StudentID is numeric)
+    if (!isNaN(parseInt(queryTerm))) {
+      query += ' WHERE StudentID = ?';
+      params.push(parseInt(queryTerm));
+    } else {
+      // Define all fields to search across except StudentID
+      const searchFields = [
+        'FirstName',
+        'LastName',
+        'DateOfBirth',
+        'Gender',
+        'ContactNumber',
+        'Email',
+        'Address',
+        'EnrollmentDate',
+        'EmergencyContact'
+      ];
 
-    // Construct the WHERE clause with OR conditions for each field
-    const searchConditions = searchFields.map(field => {
-      if (['StudentID'].includes(field)) {
-        // Cast numeric fields to CHAR for LIKE comparison
-        return `CAST(${field} AS CHAR) LIKE ?`;
-      } else if (['DateOfBirth', 'EnrollmentDate'].includes(field)) {
-        // Format date fields as strings
-        return `DATE_FORMAT(${field}, '%Y-%m-%d') LIKE ?`;
-      } else {
-        // For string fields
-        return `${field} LIKE ?`;
-      }
-    }).join(' OR ');
+      // Construct the WHERE clause with OR conditions for each field
+      const searchConditions = searchFields.map(field => `${field} LIKE ?`).join(' OR ');
+      query += ` WHERE ${searchConditions}`;
 
-    query += ` WHERE ${searchConditions}`;
-
-    // Prepare the search pattern for each field
-    const searchPattern = `%${queryTerm}%`;
-    params = Array(searchFields.length).fill(searchPattern);
+      // Prepare the search pattern for each field
+      const searchPattern = `%${queryTerm}%`;
+      params = Array(searchFields.length).fill(searchPattern);
+    }
   }
 
   // Handle sorting if sortField is provided and valid
@@ -189,8 +184,8 @@ app.get('/students', (req, res) => {
 
   db.query(query, params, (err, results) => {
     if (err) {
-      console.error('Error fetching students:', err.stack);
-      return res.status(500).send({ error: 'Database error' });
+      console.error('Error executing query:', err);
+      return res.status(500).json({ error: 'Internal server error' });
     }
     console.log('Number of Records Found:', results.length);
     res.json(results);
@@ -198,11 +193,8 @@ app.get('/students', (req, res) => {
 });
 
 
-//ks
-
-
+//sprint2
 // ================== New Routes for Assigning Students to Classes ==================
-
 // Route to fetch all classes
 app.get('/classes', (req, res) => {
   console.log('Fetching classes...');
@@ -336,6 +328,90 @@ app.get('/class-details', (req, res) => {
     }
 
     res.status(200).json(results[0]);
+  });
+});
+//sprint3
+
+// Route to update student details
+app.put('/update-student', (req, res) => {
+  const {
+    StudentID,
+    FirstName,
+    LastName,
+    DateOfBirth,
+    Gender,
+    ContactNumber,
+    Email,
+    Address,
+    EnrollmentDate,
+    EmergencyContact
+  } = req.body;
+
+  // Validate required fields
+  if (
+    !StudentID ||
+    !FirstName ||
+    !LastName ||
+    !DateOfBirth ||
+    !Gender ||
+    !ContactNumber ||
+    !Email ||
+    !Address ||
+    !EnrollmentDate ||
+    !EmergencyContact
+  ) {
+    return res.status(400).json({ message: 'All fields are required.' });
+  }
+
+  // Check for duplicate email or contact number
+  const checkDuplicateQuery = `
+    SELECT * FROM Students 
+    WHERE (Email = ? OR ContactNumber = ?) AND StudentID != ?
+  `;
+  db.query(checkDuplicateQuery, [Email, ContactNumber, StudentID], (err, results) => {
+    if (err) {
+      console.error('Error checking for duplicates:', err.stack);
+      return res.status(500).json({ message: 'Database error.' });
+    }
+
+    if (results.length > 0) {
+      return res.status(409).json({ message: 'Email or Contact Number already exists.' });
+    }
+
+    // Update query using parameterized inputs
+    const updateQuery = `
+      UPDATE Students
+      SET FirstName = ?, LastName = ?, DateOfBirth = ?, Gender = ?, ContactNumber = ?, Email = ?, Address = ?, EnrollmentDate = ?, EmergencyContact = ?
+      WHERE StudentID = ?
+    `;
+
+    db.query(
+      updateQuery,
+      [
+        FirstName,
+        LastName,
+        DateOfBirth,
+        Gender,
+        ContactNumber,
+        Email,
+        Address,
+        EnrollmentDate,
+        EmergencyContact,
+        StudentID
+      ],
+      (err, results) => {
+        if (err) {
+          console.error('Error updating student:', err.stack);
+          return res.status(500).json({ message: 'Database error.' });
+        }
+
+        if (results.affectedRows === 0) {
+          return res.status(404).json({ message: 'Student not found.' });
+        }
+
+        res.status(200).json({ message: 'Student details updated successfully!' });
+      }
+    );
   });
 });
 
