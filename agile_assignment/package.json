@@ -7,7 +7,12 @@
   "name": "agile_assignment",
   "version": "1.0.0",
   "main": "index.js",
-  "devDependencies": {},
+  "devDependencies": {
+    "chai": "^5.1.2",
+    "jest-environment-jsdom": "^29.7.0",
+    "mocha": "^11.0.1",
+    "supertest": "^7.0.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
